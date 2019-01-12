@@ -72,6 +72,9 @@ create or replace type t_lap as object (
     milisecond integer
 );
 
+/*typ przechowujacy tablice id gokartów */
+create type kartIdTab is varray (10) of integer;
+
 /*chwilowe usuwanie */
 drop type t_contact force;
 drop type t_role force;
@@ -82,6 +85,7 @@ drop type t_reservation force;
 drop type t_reservation_kart force;
 drop type t_kart force;
 drop type t_lap force;
+drop type kartIdTab force;
 
 /*---------------------------------------------------*/
 
@@ -300,7 +304,7 @@ PACKAGE BODY PACKAGE_CHECKINGRECORDEXIST AS
 END PACKAGE_CHECKINGRECORDEXIST;
 
 commit;
-
+/*---------------------------------------------------*/
 
 create or replace package package_addRecord as
     PROCEDURE addContact(contactId in integer, telephoneNumber in varchar2, email in varchar2);
@@ -368,3 +372,28 @@ PROCEDURE addContact(contactId in integer, telephoneNumber in varchar2, email in
   END addLap;
   
 END PACKAGE_ADDRECORD;
+
+/*---------------------------------------------------*/
+create or replace package package_userActions as
+    type kartRecord_type is ref cursor;
+    type reservation_type is ref cursor;
+    
+    userNotFound exception;
+    
+    procedure getRecords(kartRecord_type in out kartRecord_type, recordType in integer);
+    procedure getReservations(reservation_type in out kartRecord_type, reservationType in integer);
+    
+    procedure getUserReservations(userId in integer);
+    procedure getUserLaps(userId in integer);
+    procedure getKartsInReservation(reservationId in integer);
+    
+    procedure getKarts;
+    
+    function isReservationValid(startDate in date, endDate in date) return boolean;
+    procedure makeReservation(userId in integer, startDate in date, endDate in date, cost in number,
+    byTimeReservationType in number, description in varchar2, kartIds kartIdTab);
+    
+end package_userActions;
+
+
+
