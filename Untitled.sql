@@ -26,10 +26,15 @@ PACKAGE BODY package_userActions AS
   currentDate date;
   monthsBetweenDates integer;
   daysBetweenDates integer;
+  
   lapIdRes lap.id%type;
+  userName varchar2(40);
+  lapMinute lap.minute%type;
+  lapSecond lap.second%type;
+  lapMiliSecond lap.milisecond%type;
   BEGIN
     if recordType = 1 then
-        open recordTypeCur for select id from lap 
+        open recordTypeCur for select id, deref(usr).name, minute, second, milisecond from lap 
         where rownum <= recordLimit order by minute asc, second asc, milisecond asc;
     elsif recordType = 2 then
         select sysdate into currentDate from dual;
@@ -52,8 +57,8 @@ PACKAGE BODY package_userActions AS
     end if;
     
     loop
-        fetch recordTypeCur into lapIdRes;
-            DBMS_OUTPUT.PUT_LINE('ID okrazena' || lapIdRes);
+        fetch recordTypeCur into lapIdRes, userName, lapMinute, lapSecond, lapMilisecond;
+            DBMS_OUTPUT.PUT_LINE('ID okrazena: ' || lapIdRes || 'Uzytkownik: ' || lapIdRes || 'Czas: ' || lapMinute || ':' || lapSecond || ':' || lapMilisecond);
         exit when recordTypeCur%notfound;
     end loop;
     close recordTypeCur;
