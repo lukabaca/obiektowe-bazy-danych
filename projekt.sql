@@ -99,7 +99,6 @@ create table reservationKart of t_reservation_kart;
 create table kart of t_kart;
 create table lap of t_lap;
 
-
 drop table usr;
 drop table contact;
 drop table role;
