@@ -1,0 +1,347 @@
+/* typ reprezentujacy dane kontaktowe */
+create or replace type t_contact as object (
+    id integer,
+    telephoneNumber varchar2(20),
+    email varchar2(30)
+);
+
+/*typ reprezentujacy role */
+create or replace type t_role as object (
+    id integer,
+    name varchar2(20)
+);
+
+/*typ reprezentujacy nagranie */
+create or replace type t_recording as object (
+    id integer,
+    recordingLink varchar2(255),
+    title varchar2(30)
+);
+
+/*kolekcja typow t_recording */
+create type k_recording as table of t_recording;
+
+/* typ reprezentujacy uzytkownika */
+create or replace type t_user as object (
+    id integer,
+    name varchar2(30),
+    surname varchar2(30),
+    birthDate date,
+    pesel varchar2(11),
+    document_id varchar2(9),
+    contact ref t_contact,
+    role ref t_role,
+    recordings k_recording
+);
+
+/*typ reprezentujacy rezerwacje */
+create or replace type t_reservation as object (
+    id integer,
+    usr REF t_user,
+    startDate date,
+    endDate date,
+    cost number(10,2),
+    byTimeReservationType number(1,0),
+    descritpion varchar2(300)
+);
+
+/*typ reprezentujacy gokart */
+create or replace type t_kart as object (
+    id integer,
+    availability number(1,0),
+    prize number,
+    name varchar2(40),
+    description varchar2(300)
+);
+
+/*typ reprezentujacy poœredniczenie zawierajace referencje gokartu i rezerwacji */
+create or replace type t_reservation_kart as object (
+    reservation REF t_reservation,
+    kart REF t_kart
+);
+
+/*typ reprezentujacy okrazenie */
+create or replace type t_lap as object (
+    id integer,
+    usr REF t_user,
+    kart REF t_kart,
+    averageSpeed number,
+    lapDate date,
+    minute integer,
+    second integer,
+    milisecond integer
+);
+
+/*chwilowe usuwanie */
+drop type t_contact force;
+drop type t_role force;
+drop type t_recording force;
+drop type k_recording force;
+drop type t_user force;
+drop type t_reservation force;
+drop type t_reservation_kart force;
+drop type t_kart force;
+drop type t_lap force;
+
+/*---------------------------------------------------*/
+
+/*tworzenie tabel na podstawie typów obiektowych */
+create table usr of t_user
+nested table recordings store as recording;
+create table contact of t_contact;
+create table role of t_role;
+create table reservation of t_reservation;
+create table reservationKart of t_reservation_kart;
+create table kart of t_kart;
+create table lap of t_lap;
+
+
+drop table usr;
+drop table contact;
+drop table role;
+drop table reservation;
+drop table reservationKart;
+drop table kart;
+drop table lap;
+drop table recording;
+
+delete from role;
+delete from contact;
+delete from usr;
+
+/*---------------------------------------------------*/
+
+/*tworzenie sekwencji do generowania id */
+drop sequence userId;
+drop sequence reservationId;
+drop sequence kartId;
+drop sequence kartTechnicalDataId;
+drop sequence lapId;
+drop sequence recordingId;
+
+create sequence userId minvalue 1 start with 1;
+create sequence reservationId minvalue 1 start with 1;
+create sequence kartId minvalue 1 start with 1;
+create sequence kartTechnicalDataId minvalue 1 start with 1;
+create sequence lapId minvalue 1 start with 1;
+create sequence recordingId minvalue 1 start with 1;
+
+/*---------------------------------------------------*/
+
+/* inserty */
+
+/* wstawianie rekordów do tabeli role */
+insert into role values(1, 'ROLE_USER');
+insert into role values(2, 'ROLE_ADMIN');
+
+/*wstawianie rekordow do tabeli danych kontaktowych */
+insert into contact values(1, 'jan@gmail.com', '505-303-404');
+insert into contact values(2, 'olek@gmail.com', '404-555-666');
+
+/*wstawianie rekordow do tabeli uzytkownik */
+insert into usr select userId.nextval, 'Jan', 'Kowalski', to_date('1996-04-30', 'YYYY-MM-DD'), 
+'1111', 'asd123', ref(contactRef), ref(rolRef), k_recording(t_recording(1, 'youtube.com', 'szybkie nagranie')) from role rolRef, contact contactRef 
+where rolRef.id = 1 and contactRef.id = 1;
+
+insert into usr select userId.nextval, 'Olek', 'Nowak', to_date('1970-01-22', 'YYYY-MM-DD'), 
+'222', 'afd456', ref(contactRef), ref(rolRef),
+k_recording(t_recording(1, 'youtube.com', 'szybkie nagranie'), t_recording(2, 'youtub2e.com', 'moje nagranie')) 
+from role rolRef, contact contactRef 
+where rolRef.id = 2 and contactRef.id = 2;
+
+/* wstawianie rekordow do tabeli reservation */
+insert into reservation select reservationId.nextval, ref(usrRef), to_date('2019-01-01 15:00:00', 'YYYY-MM-DD HH24:MI:SS'), 
+to_date('2019-01-01 15:30:00', 'YY-MM-DD HH24:MI:SS'), 25, 0, ''
+from usr usrRef where usrRef.id = 1;
+
+insert into reservation select reservationId.nextval, ref(usrRef), to_date('2019-01-01 17:20:00', 'YYYY-MM-DD HH24:MI:SS'), 
+to_date('2019-01-01 19:30:00', 'YY-MM-DD HH24:MI:SS'), 35, 0, ''
+from usr usrRef where usrRef.id = 1;
+
+/*wstawianie rekordow do tabeli kart */
+insert into kart values(kartId.nextval, 1, 25, 'gt5', 'silnik m52b20');
+insert into kart values(kartId.nextval, 0, 40, 'gt6', 'silnik m52b28');
+insert into kart values(kartId.nextval, 1, 25, 'gt7', 'silnik m54b25');
+
+/*wstawianie rekordow do tabeli reservationKart */
+insert into reservationKart select 
+ref(reserRef), ref(kartRef) from reservation reserRef, kart kartRef
+where reserRef.id = 1 and kartRef.id = 1;
+
+insert into reservationKart select 
+ref(reserRef), ref(kartRef) from reservation reserRef, kart kartRef
+where reserRef.id = 1 and kartRef.id = 3;
+
+/*wstawianie rekordów do tabeli lap */
+insert into lap select lapId.nextval, ref(usrRef), ref(kartRef),
+44.5, to_date('2019-01-30'), 1, 20, 55 from usr usrRef, kart kartRef
+where usrRef.id = 1 and kartRef.id = 1;
+
+insert into lap select lapId.nextval, ref(usrRef), ref(kartRef),
+55, to_date('2019-01-12'), 0, 55, 24 from usr usrRef, kart kartRef
+where usrRef.id = 1 and kartRef.id = 3;
+
+/*---------------------------------------------------*/
+
+/*selecty */
+
+/*contact */
+select * from contact;
+
+/*role */
+select * from role;
+
+/*user */
+select u.id, u.name, u.surname, u.birthdate, u.pesel, u.document_id, deref(contact).email, 
+deref(contact).telephoneNumber, deref(role).name, r.recordingLink, r.title from usr u, 
+table (u.recordings) r;
+
+/*reservation */
+select id, to_char(startDate, 'YYYY-MM-DD HH24:MI:SS'), to_char(endDate, 'YYYY-MM-DD HH24:MI:SS'), cost, deref(usr).name, deref(usr).surname from reservation;
+
+/*kart */
+select * from kart;
+
+/*kartTechnicalData */
+select id, deref(kart).name, deref(kart).prize, power, vmax, engine from kartTechnicalData;
+
+/*reservationKart */
+select deref(reservation).id, deref(reservation).startDate,
+deref(kart).name from reservationKart;
+
+/*recording */
+select id, deref(usr).name, deref(usr).surname, recordingLink, title from recording;
+
+/*lap */
+select id, deref(usr).name, deref(usr).surname, deref(kart).name, averageSpeed,
+to_char(lapDate, 'YYYY-MM-DD'), minute, second, milisecond from lap;
+
+/*---------------------------------------------------*/
+
+/*tworzenie pakietów */
+
+set SERVEROUTPUT ON;
+
+create or replace package package_CheckingRecordExist as
+    FUNCTION isContactFound RETURN BOOLEAN;
+    FUNCTION isUserFound RETURN BOOLEAN;
+    FUNCTION isRoleFound RETURN BOOLEAN;
+    FUNCTION isReservationFound RETURN BOOLEAN;
+    FUNCTION isKartFound RETURN BOOLEAN;
+    FUNCTION isKartTechnicalDataFound RETURN BOOLEAN;
+    FUNCTION isRecordingFound RETURN BOOLEAN;
+    FUNCTION isLapFound RETURN BOOLEAN;
+    
+end package_CheckingRecordExist;
+
+CREATE OR REPLACE
+PACKAGE BODY PACKAGE_CHECKINGRECORDEXIST AS
+
+  FUNCTION isContactFound RETURN BOOLEAN AS
+  numberOfRecordsFound number;
+  BEGIN
+    select count(id) into numberOfRecordsFound from contact ;
+    if numberOfRecordsFound > 0 then
+        return true;
+    else
+        return false;
+    end if;
+  END isContactFound;
+
+
+  FUNCTION isUserFound RETURN BOOLEAN AS
+  numberOfRecordsFound number;
+  BEGIN
+    select count(id) into numberOfRecordsFound from usr ;
+    if numberOfRecordsFound > 0 then
+        return true;
+    else
+        return false;
+    end if;
+  END isUserFound;
+
+  FUNCTION isRoleFound RETURN BOOLEAN AS
+  numberOfRecordsFound number;
+  BEGIN
+    select count(id) into numberOfRecordsFound from role ;
+    if numberOfRecordsFound > 0 then
+        return true;
+    else
+        return false;
+    end if;
+  END isRoleFound;
+
+  FUNCTION isReservationFound RETURN BOOLEAN AS
+   numberOfRecordsFound number;
+  BEGIN
+    select count(id) into numberOfRecordsFound from reservation ;
+    if numberOfRecordsFound > 0 then
+        return true;
+    else
+        return false;
+    end if;
+  END isReservationFound;
+
+  FUNCTION isKartFound RETURN BOOLEAN AS
+  numberOfRecordsFound number;
+  BEGIN
+    select count(id) into numberOfRecordsFound from kart ;
+    if numberOfRecordsFound > 0 then
+        return true;
+    else
+        return false;
+    end if;
+  END isKartFound;
+
+  FUNCTION isKartTechnicalDataFound RETURN BOOLEAN AS
+  numberOfRecordsFound number;
+  BEGIN
+    select count(id) into numberOfRecordsFound from kartTechnicalData ;
+    if numberOfRecordsFound > 0 then
+        return true;
+    else
+        return false;
+    end if;
+  END isKartTechnicalDataFound;
+
+  FUNCTION isRecordingFound RETURN BOOLEAN AS
+  numberOfRecordsFound number;
+  BEGIN
+    select count(id) into numberOfRecordsFound from recording ;
+    if numberOfRecordsFound > 0 then
+        return true;
+    else
+        return false;
+    end if;
+  END isRecordingFound;
+
+  FUNCTION isLapFound RETURN BOOLEAN AS
+   numberOfRecordsFound number;
+  BEGIN
+    select count(id) into numberOfRecordsFound from lap ;
+    if numberOfRecordsFound > 0 then
+        return true;
+    else
+        return false;
+    end if;
+  END isLapFound;
+  
+END PACKAGE_CHECKINGRECORDEXIST;
+
+commit;
+
+
+create or replace package package_addRecord as
+    PROCEDURE addContact(id in integer, telephoneNumber in varchar2, email in varchar2);
+    PROCEDURE addRole(id in integer, name in varchar2);
+    PROCEDURE addUser(id in integer, name in varchar2, surname in varchar2, birthDate in date, pesel in varchar2,
+    document_id in varchar2, idContact in integer, idRole in integer);
+    PROCEDURE addReservation(id in integer, idUser in integer, startDate in date, endDate in date, 
+    cost in number, byTimeReservationType in number, description in varchar2);
+    PROCEDURE addKart(id in integer, availability number, prize in number, name in varchar2, descripiton in varchar2);
+    PROCEDURE addKartTechnicalData(id in integer, idKart in integer, power in integer, vmax in number, engine in varchar2);
+    PROCEDURE addRecording(id in integer, idUser in integer, recordingLink in varchar2, title in varchar2);
+    PROCEDURE addReservationKart(idReservation in integer, idKart in integer);
+    PROCEDURE addLap(id in integer, idUser in integer, idKart in integer, averageSpeed in number, lapDate in date,
+    minute in integer, second in integer, milisecond in integer);
+end package_addRecord;
