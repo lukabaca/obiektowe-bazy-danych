@@ -40,9 +40,7 @@ create or replace type t_reservation as object (
     usr REF t_user,
     startDate date,
     endDate date,
-    cost number(10,2),
-    byTimeReservationType number(1,0),
-    descritpion varchar2(300)
+    cost number(10,2)
 );
 
 /*typ reprezentujacy gokart */
@@ -106,7 +104,6 @@ drop table reservation;
 drop table reservationKart;
 drop table kart;
 drop table lap;
-drop table recording;
 
 delete from role;
 delete from contact;
@@ -154,11 +151,11 @@ where rolRef.id = 2 and contactRef.id = 2;
 
 /* wstawianie rekordow do tabeli reservation */
 insert into reservation select reservationId.nextval, ref(usrRef), to_date('2019-01-01 15:00:00', 'YYYY-MM-DD HH24:MI:SS'), 
-to_date('2019-01-01 15:30:00', 'YY-MM-DD HH24:MI:SS'), 25, 0, ''
+to_date('2019-01-01 15:30:00', 'YY-MM-DD HH24:MI:SS'), 25
 from usr usrRef where usrRef.id = 1;
 
 insert into reservation select reservationId.nextval, ref(usrRef), to_date('2019-01-01 17:20:00', 'YYYY-MM-DD HH24:MI:SS'), 
-to_date('2019-01-01 19:30:00', 'YY-MM-DD HH24:MI:SS'), 35, 0, ''
+to_date('2019-01-01 19:30:00', 'YY-MM-DD HH24:MI:SS'), 35
 from usr usrRef where usrRef.id = 1;
 
 /*wstawianie rekordow do tabeli kart */
