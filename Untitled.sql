@@ -12,10 +12,11 @@ create or replace package package_userActions as
     procedure getUserLaps(userId in integer);
     procedure getKartsInReservation(reservationId in integer);
     
-    /*
     procedure getKarts;
     
+    
     function isReservationValid(startDate in date, endDate in date) return boolean;
+    /*
     procedure makeReservation(userId in integer, startDate in date, endDate in date, cost in number,
     byTimeReservationType in number, description in varchar2, kartIds kartIdTab);
     */
@@ -167,15 +168,50 @@ PACKAGE BODY package_userActions AS
   
 
   procedure getKarts AS
+    cursor cur is select * from kart;
+    
+    kartId integer;
+    kartAvailability number;
+    kartPrize number;
+    kartName varchar2(40);
+    kartDescritpion varchar2(255);
   BEGIN
-    -- TODO: Implementation required for procedure PACKAGE_USERACTIONS.getKarts
-    NULL;
+     open cur;
+        loop
+        fetch cur into kartId, kartAvailability, kartPrize, kartName, kartDescritpion;
+            exit when cur%notfound;
+            dbms_output.put_line(kartId || ' ' || kartAvailability || ' ' || kartPrize || ' ' || kartName || ' ' || kartDescritpion);
+        end loop;
+    close cur;
   END getKarts;
 
   function isReservationValid(startDate in date, endDate in date) return boolean AS
+  currentDate date;
+  
+  startDateHour integer;
+  endDateHour integer;
+  
+  reservationsReturned integer;
   BEGIN
-    -- TODO: Implementation required for function PACKAGE_USERACTIONS.isReservationValid
-    RETURN NULL;
+    select sysdate into currentDate from dual;
+    select extract(hour from cast(startDate as timestamp)) into startDateHour from dual; 
+    select extract(hour from cast(endDate as timestamp)) into endDateHour from dual;
+    if startDate < currentDate then
+        return false;
+    elsif startDateHour < 12 or endDateHour > 20 then
+        return false;
+    else
+        select count(*) into reservationsReturned from reservation where
+		(startDate >= reservation.startDate and endDate <= reservation.endDate)
+		or (startDate < reservation.startDate and endDate > reservation.startDate and endDate <= reservation.endDate)
+		or (endDate > reservation.endDate and startDate >= reservation.startDate and startDate < reservation.endDate)
+		or (startDate < reservation.startDate and endDate > reservation.endDate);
+		if reservationsReturned = 0 then
+			return true;
+		else 
+			return false;
+        end if;    
+    end if;    
   END isReservationValid;
 
   procedure makeReservation(userId in integer, startDate in date, endDate in date, cost in number,
@@ -233,3 +269,34 @@ BEGIN
   );
 --rollback; 
 END;
+
+BEGIN
+  PACKAGE_USERACTIONS.GETKARTS();
+--rollback; 
+END;
+
+
+DECLARE
+  STARTDATE DATE;
+  ENDDATE DATE;
+  v_Return BOOLEAN;
+BEGIN
+  STARTDATE := NULL;
+  ENDDATE := NULL;
+
+  v_Return := PACKAGE_USERACTIONS.ISRESERVATIONVALID(
+    STARTDATE => to_date('2019-01-12 22:00:00', 'YYYY-MM-DD HH24:MI:SS'),
+    ENDDATE => ENDDATE
+  );
+
+IF (v_Return) THEN 
+    DBMS_OUTPUT.PUT_LINE('v_Return = ' || 'TRUE');
+  ELSE
+    DBMS_OUTPUT.PUT_LINE('v_Return = ' || 'FALSE');
+  END IF;
+  --:v_Return := v_Return;
+--rollback; 
+END;
+
+
+
