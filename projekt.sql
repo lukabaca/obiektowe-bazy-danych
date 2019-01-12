@@ -202,15 +202,9 @@ select id, to_char(startDate, 'YYYY-MM-DD HH24:MI:SS'), to_char(endDate, 'YYYY-M
 /*kart */
 select * from kart;
 
-/*kartTechnicalData */
-select id, deref(kart).name, deref(kart).prize, power, vmax, engine from kartTechnicalData;
-
 /*reservationKart */
 select deref(reservation).id, deref(reservation).startDate,
 deref(kart).name from reservationKart;
-
-/*recording */
-select id, deref(usr).name, deref(usr).surname, recordingLink, title from recording;
 
 /*lap */
 select id, deref(usr).name, deref(usr).surname, deref(kart).name, averageSpeed,
@@ -223,13 +217,12 @@ to_char(lapDate, 'YYYY-MM-DD'), minute, second, milisecond from lap;
 set SERVEROUTPUT ON;
 
 create or replace package package_CheckingRecordExist as
+
     FUNCTION isContactFound RETURN BOOLEAN;
     FUNCTION isUserFound RETURN BOOLEAN;
     FUNCTION isRoleFound RETURN BOOLEAN;
     FUNCTION isReservationFound RETURN BOOLEAN;
     FUNCTION isKartFound RETURN BOOLEAN;
-    FUNCTION isKartTechnicalDataFound RETURN BOOLEAN;
-    FUNCTION isRecordingFound RETURN BOOLEAN;
     FUNCTION isLapFound RETURN BOOLEAN;
     
 end package_CheckingRecordExist;
@@ -293,28 +286,6 @@ PACKAGE BODY PACKAGE_CHECKINGRECORDEXIST AS
     end if;
   END isKartFound;
 
-  FUNCTION isKartTechnicalDataFound RETURN BOOLEAN AS
-  numberOfRecordsFound number;
-  BEGIN
-    select count(id) into numberOfRecordsFound from kartTechnicalData ;
-    if numberOfRecordsFound > 0 then
-        return true;
-    else
-        return false;
-    end if;
-  END isKartTechnicalDataFound;
-
-  FUNCTION isRecordingFound RETURN BOOLEAN AS
-  numberOfRecordsFound number;
-  BEGIN
-    select count(id) into numberOfRecordsFound from recording ;
-    if numberOfRecordsFound > 0 then
-        return true;
-    else
-        return false;
-    end if;
-  END isRecordingFound;
-
   FUNCTION isLapFound RETURN BOOLEAN AS
    numberOfRecordsFound number;
   BEGIN
@@ -335,11 +306,10 @@ create or replace package package_addRecord as
     PROCEDURE addContact(id in integer, telephoneNumber in varchar2, email in varchar2);
     PROCEDURE addRole(id in integer, name in varchar2);
     PROCEDURE addUser(id in integer, name in varchar2, surname in varchar2, birthDate in date, pesel in varchar2,
-    document_id in varchar2, idContact in integer, idRole in integer);
+    document_id in varchar2, idContact in integer, idRole in integer, recordings in k_recording);
     PROCEDURE addReservation(id in integer, idUser in integer, startDate in date, endDate in date, 
     cost in number, byTimeReservationType in number, description in varchar2);
     PROCEDURE addKart(id in integer, availability number, prize in number, name in varchar2, descripiton in varchar2);
-    PROCEDURE addKartTechnicalData(id in integer, idKart in integer, power in integer, vmax in number, engine in varchar2);
     PROCEDURE addRecording(id in integer, idUser in integer, recordingLink in varchar2, title in varchar2);
     PROCEDURE addReservationKart(idReservation in integer, idKart in integer);
     PROCEDURE addLap(id in integer, idUser in integer, idKart in integer, averageSpeed in number, lapDate in date,
