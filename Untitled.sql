@@ -8,10 +8,10 @@ create or replace package package_userActions as
     procedure getReservations(reservationTypeCur in out reservation_type, reservationType in integer, reservationDate in date);
     
     procedure getUserReservations(userId in integer);
-    /*
+    
     procedure getUserLaps(userId in integer);
     procedure getKartsInReservation(reservationId in integer);
-    */
+    
     /*
     procedure getKarts;
     
@@ -120,21 +120,51 @@ PACKAGE BODY package_userActions AS
   END getUserReservations;
   
 
-    /*
+    
   procedure getUserLaps(userId in integer) AS
-  BEGIN
-    select id, deref(usr).name, deref(usr).surname, deref(kart).name, averageSpeed,
+  cursor cur is select id, deref(usr).name, deref(usr).surname, deref(kart).name, averageSpeed,
     to_char(lapDate, 'YYYY-MM-DD'), minute, second, milisecond from lap
     where deref(usr).id = userId;
+    
+   lapId integer;
+   userName varchar2(40);
+   userSurname varchar2(40);
+   kartName varchar(50);
+   averageSpeed number;
+   lapDate varchar2(30);
+   
+   lapMinute integer;
+   lapSecond integer;
+   lapMilisecond integer;
+  BEGIN
+    open cur;
+        loop
+        fetch cur into lapId, userName, userSurname, kartName, averageSpeed, lapDate, lapMinute, lapSecond, lapMilisecond;
+            exit when cur%notfound;
+            dbms_output.put_line(lapId || ' ' || userName || ' ' || userSurname || ' ' || kartName || ' ' || averageSpeed || ' ' 
+            || lapDate || ' ' || lapMinute || ' ' || lapSecond || ' ' || lapMilisecond);
+        end loop;
+    close cur;
   END getUserLaps;
 
   procedure getKartsInReservation(reservationId in integer) AS
-  BEGIN
-  
-    select deref(reservation).startDate, deref(reservation).endDate, deref(kart).name from reservationKart
+    cursor cur is select deref(reservation).startDate, deref(reservation).endDate, deref(kart).name from reservationKart
     where deref(reservation).id = reservationId;
+    
+    reservationStartdate date;
+    reservationEnddate date;
+    kartName varchar2(40);
+  BEGIN
+       open cur;
+        loop
+        fetch cur into reservationStartdate, reservationEnddate, kartName;
+            exit when cur%notfound;
+            dbms_output.put_line(to_char(reservationStartdate, 'YYYY-MM-DD HH24:MI:SS') || ' ' || 
+            to_char(reservationEnddate, 'YYYY-MM-DD HH24:MI:SS') || ' ' || kartName);
+        end loop;
+    close cur;
   END getKartsInReservation;
-  */
+  
 
   procedure getKarts AS
   BEGIN
@@ -158,17 +188,20 @@ PACKAGE BODY package_userActions AS
 END package_userActions;
 
 /*test dzialania getRecords */
+
 set SERVEROUTPUT ON;
 declare refk package_userActions.kartRecord_type;
 begin
     package_userActions.getRecords(refk, 1, 10);
 end;
 
+
 set SERVEROUTPUT ON;
 declare refk package_userActions.reservation_type;
 begin
     package_userActions.getReservations(refk, 6, '2019-01-19');
 end;
+
 
 set SERVEROUTPUT ON;
 DECLARE
@@ -180,3 +213,23 @@ BEGIN
   );
 END;
 
+DECLARE
+  USERID NUMBER;
+BEGIN
+  USERID := 1;
+  PACKAGE_USERACTIONS.GETUSERLAPS(
+    USERID => USERID
+  );
+--rollback; 
+END;
+
+DECLARE
+  RESERVATIONID NUMBER;
+BEGIN
+  RESERVATIONID := 1;
+
+  PACKAGE_USERACTIONS.GETKARTSINRESERVATION(
+    RESERVATIONID => RESERVATIONID
+  );
+--rollback; 
+END;
