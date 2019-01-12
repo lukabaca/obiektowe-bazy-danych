@@ -15,7 +15,7 @@ create or replace package package_userActions as
     procedure getKarts;
     
     
-    function isReservationValid(startDate in date, endDate in date) return boolean;
+    function isReservationValid(resStartDate in date, resEndDate in date) return boolean;
     
     procedure makeReservation(userId in integer, startDate in date, endDate in date, cost in number,
     byTimeReservationType in number, description in varchar2, kartIds kartIdTab);
@@ -185,7 +185,7 @@ PACKAGE BODY package_userActions AS
     close cur;
   END getKarts;
 
-  function isReservationValid(startDate in date, endDate in date) return boolean AS
+  function isReservationValid(resStartDate in date, resEndDate in date) return boolean AS
   currentDate date;
   
   startDateHour integer;
@@ -196,26 +196,26 @@ PACKAGE BODY package_userActions AS
   reservationsReturned number;
   BEGIN
     select sysdate into currentDate from dual;
-    select extract(hour from cast(startDate as timestamp)) into startDateHour from dual; 
-    select extract(hour from cast(endDate as timestamp)) into endDateHour from dual;
-
-    if startDate < currentDate then
+    select extract(hour from cast(resStartDate as timestamp)) into startDateHour from dual; 
+    select extract(hour from cast(resEndDate as timestamp)) into endDateHour from dual;
+    
+    if resStartDate < currentDate then
         return false;
     elsif startDateHour < 12 or endDateHour >= 20 then
         return false;
     else
-    DBMS_OUTPUT.PUT_LINE(to_char(startDate, 'YYYY-MM-DD HH24:MI:SS'));
-    DBMS_OUTPUT.PUT_LINE(to_char(endDate, 'YYYY-MM-DD HH24:MI:SS'));
+    --DBMS_OUTPUT.PUT_LINE(to_char(resStartDate, 'YYYY-MM-DD HH24:MI:SS'));
+    --DBMS_OUTPUT.PUT_LINE(to_char(resEndDate, 'YYYY-MM-DD HH24:MI:SS'));
+    --DBMS_OUTPUT.PUT_LINE(reservationsReturned);
         select count(id) into reservationsReturned from reservation where
-		((startDate >= reservation.startDate and endDate <= reservation.endDate)
-		or (startDate < reservation.startDate and endDate > reservation.startDate and endDate <= reservation.endDate)
-		or (endDate > reservation.endDate and startDate >= reservation.startDate and startDate < reservation.endDate)
-		or (startDate < reservation.startDate and endDate > reservation.endDate));
+		(( (resStartDate >= reservation.startDate) and (resEndDate <= reservation.endDate) )
+		or ( (resStartDate < reservation.startDate) and (resEndDate > reservation.startDate) and (resEndDate <= reservation.endDate) )
+		or ( (resEndDate > reservation.endDate) and (resStartDate >= reservation.startDate) and (resStartDate < reservation.endDate) )
+		or ( (resStartDate < reservation.startDate) and (resEndDate > reservation.endDate)) );
+        --DBMS_OUTPUT.PUT_LINE(reservationsReturned);
 		if reservationsReturned = 0 then
-            DBMS_OUTPUT.PUT_LINE(reservationsReturned);
 			return true;
 		else 
-         DBMS_OUTPUT.PUT_LINE(reservationsReturned);
 			return false;
         end if;  
         
