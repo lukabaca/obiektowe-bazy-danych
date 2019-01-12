@@ -6,11 +6,13 @@ create or replace package package_userActions as
     
     procedure getRecords(recordTypeCur in out kartRecord_type, recordType in integer, recordLimit in integer);
     procedure getReservations(reservationTypeCur in out reservation_type, reservationType in integer, reservationDate in date);
-    /*
+    
     procedure getUserReservations(userId in integer);
+    /*
     procedure getUserLaps(userId in integer);
     procedure getKartsInReservation(reservationId in integer);
-    
+    */
+    /*
     procedure getKarts;
     
     function isReservationValid(startDate in date, endDate in date) return boolean;
@@ -96,24 +98,43 @@ PACKAGE BODY package_userActions AS
   END getReservations;
   
   
-
+    
   procedure getUserReservations(userId in integer) AS
+   cursor cur is select id, to_char(startDate, 'YYYY-MM-DD HH24:MI:SS'), to_char(endDate, 'YYYY-MM-DD HH24:MI:SS'), cost, deref(usr).name, deref(usr).surname from reservation
+   where deref(usr).id = userId;
+   
+   reservationId integer;
+   startDate varchar2(30);
+   endDate varchar2(30);
+   reservationCost number;
+   userName varchar2(40);
+   userSurname varchar2(40);
   BEGIN
-    -- TODO: Implementation required for procedure PACKAGE_USERACTIONS.getUserReservations
-    NULL;
+    open cur;
+        loop
+        fetch cur into reservationId, startDate, endDate, reservationCost, userName, userSurname;
+            exit when cur%notfound;
+            dbms_output.put_line(reservationId || ' ' || startDate || ' ' || endDate || ' ' || reservationCost || ' ' || userName || ' ' || userSurname);
+        end loop;
+    close cur;
   END getUserReservations;
+  
 
+    /*
   procedure getUserLaps(userId in integer) AS
   BEGIN
-    -- TODO: Implementation required for procedure PACKAGE_USERACTIONS.getUserLaps
-    NULL;
+    select id, deref(usr).name, deref(usr).surname, deref(kart).name, averageSpeed,
+    to_char(lapDate, 'YYYY-MM-DD'), minute, second, milisecond from lap
+    where deref(usr).id = userId;
   END getUserLaps;
 
   procedure getKartsInReservation(reservationId in integer) AS
   BEGIN
-    -- TODO: Implementation required for procedure PACKAGE_USERACTIONS.getKartsInReservation
-    NULL;
+  
+    select deref(reservation).startDate, deref(reservation).endDate, deref(kart).name from reservationKart
+    where deref(reservation).id = reservationId;
   END getKartsInReservation;
+  */
 
   procedure getKarts AS
   BEGIN
@@ -149,4 +170,13 @@ begin
     package_userActions.getReservations(refk, 6, '2019-01-19');
 end;
 
-select * from reservation;
+set SERVEROUTPUT ON;
+DECLARE
+  USERID NUMBER;
+BEGIN
+  USERID := 1;
+  PACKAGE_USERACTIONS.GETUSERRESERVATIONS(
+    USERID => USERID
+  );
+END;
+
