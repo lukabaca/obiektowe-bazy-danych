@@ -3,6 +3,7 @@ create or replace package package_userActions as
     type reservation_type is ref cursor;
     
     userNotFound exception;
+    reservationNotFound exception;
     
     procedure getRecords(recordTypeCur in out kartRecord_type, recordType in integer, recordLimit in integer);
     procedure getReservations(reservationTypeCur in out reservation_type, reservationType in integer, reservationDate in date);
@@ -12,9 +13,9 @@ create or replace package package_userActions as
     procedure getKarts;
     
     function isReservationValid(resStartDate in date, resEndDate in date) return boolean;
-    procedure makeReservation(userId in integer, startDate in date, endDate in date, cost in number,
-    kartIds kartIdTab);
-
+    function checkKartIds(kartIds kartIdTab) return boolean; 
+    procedure makeReservation(userId in integer, startDate in date, endDate in date, kartIds kartIdTab);
+    
 end package_userActions;
 
 CREATE OR REPLACE
@@ -96,21 +97,20 @@ PACKAGE BODY package_userActions AS
   
     
   procedure getUserReservations(userId in integer) AS
-   cursor cur is select id, to_char(startDate, 'YYYY-MM-DD HH24:MI:SS'), to_char(endDate, 'YYYY-MM-DD HH24:MI:SS'), cost, deref(usr).name, deref(usr).surname from reservation
+   cursor cur is select id, to_char(startDate, 'YYYY-MM-DD HH24:MI:SS'), to_char(endDate, 'YYYY-MM-DD HH24:MI:SS'), deref(usr).name, deref(usr).surname from reservation
    where deref(usr).id = userId;
    
    reservationId integer;
    startDate varchar2(30);
    endDate varchar2(30);
-   reservationCost number;
    userName varchar2(40);
    userSurname varchar2(40);
   BEGIN
     open cur;
         loop
-        fetch cur into reservationId, startDate, endDate, reservationCost, userName, userSurname;
+        fetch cur into reservationId, startDate, endDate, userName, userSurname;
             exit when cur%notfound;
-            dbms_output.put_line(reservationId || ' ' || startDate || ' ' || endDate || ' ' || reservationCost || ' ' || userName || ' ' || userSurname);
+            dbms_output.put_line(reservationId || ' ' || startDate || ' ' || endDate || ' ' || ' ' || userName || ' ' || userSurname);
         end loop;
     close cur;
   END getUserReservations;
@@ -212,14 +212,32 @@ PACKAGE BODY package_userActions AS
         
     end if;    
   END isReservationValid;
+  
+  function checkKartIds(kartIds kartIdTab) return boolean as
+    isValid boolean;
+  begin
+    isValid:= true;
+    if kartIds.count > 0 then
+        for i in 1 .. kartIds.count
+        loop
+            if (not PACKAGE_CHECKINGRECORDEXIST.isKartFound(kartIds(i))) then
+                isValid:= false;
+                exit;
+            end if;
+        end loop;
+    else 
+        isValid:= false;
+    end if;
+    
+    return isValid;
+  end checkKartIds;
 
-  procedure makeReservation(userId in integer, startDate in date, endDate in date, cost in number,
-   kartIds kartIdTab) AS
+  procedure makeReservation(userId in integer, startDate in date, endDate in date, kartIds kartIdTab) AS
    reservationTmpId integer;
   BEGIN
     if (isReservationValid(startDate, endDate)) then
         reservationTmpId:= reservationId.nextval; 
-        PACKAGE_ADDRECORD.addReservation(reservationTmpId, userId, startDate, endDate, cost);
+        PACKAGE_ADDRECORD.addReservation(reservationTmpId, userId, startDate, endDate);
         for i in 1 .. kartIds.count
         loop
             PACKAGE_ADDRECORD.ADDRESERVATIONKART(reservationTmpId, kartIds(i));
@@ -308,6 +326,8 @@ IF (v_Return) THEN
   --:v_Return := v_Return;
 --rollback; 
 END;
+
+
 
 commit;
 
