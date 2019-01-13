@@ -74,7 +74,7 @@ create or replace type t_lap as object (
 /*typ przechowujacy tablice id gokartów */
 create type kartIdTab is varray (10) of integer;
 
-/*chwilowe usuwanie */
+/*chwilowe usuwanie typów */
 drop type t_contact force;
 drop type t_role force;
 drop type t_recording force;
@@ -100,6 +100,7 @@ create table reservationKart of t_reservation_kart;
 create table kart of t_kart;
 create table lap of t_lap;
 
+/*usuwanie tabel */
 drop table usr;
 drop table contact;
 drop table role;
@@ -108,6 +109,7 @@ drop table reservationKart;
 drop table kart;
 drop table lap;
 
+/*usuwanie zawartosci tabel */
 delete from role;
 delete from contact;
 delete from usr;
@@ -118,7 +120,6 @@ delete from kart;
 
 /*---------------------------------------------------*/
 
-/*tworzenie sekwencji do generowania id */
 drop sequence contactIdSeq;
 drop sequence userIdSeq;
 drop sequence reservationIdSeq;
@@ -127,7 +128,7 @@ drop sequence lapIdSeq;
 drop sequence recordingIdSeq;
 drop sequence roleIdSeq;
 
-
+/*tworzenie sekwencji do generowania id */
 create sequence contactIdSeq minvalue 1 start with 1;
 create sequence userIdSeq minvalue 1 start with 1;
 create sequence reservationIdSeq minvalue 1 start with 1;
