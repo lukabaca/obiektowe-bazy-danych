@@ -2,8 +2,9 @@ create or replace package package_userActions as
     type kartRecord_type is ref cursor;
     type reservation_type is ref cursor;
     
-    userNotFound exception;
-    reservationNotFound exception;
+    userNotFoundException exception;
+    reservationNotFoundException exception;
+    kartNotFoundException exception;
     
     procedure getRecords(recordTypeCur in out kartRecord_type, recordType in integer, recordLimit in integer);
     procedure getReservations(reservationTypeCur in out reservation_type, reservationType in integer, reservationDate in date);
@@ -20,43 +21,40 @@ end package_userActions;
 
 CREATE OR REPLACE
 PACKAGE BODY package_userActions AS
-    /* 1 - rekordy wszech czasów, 2 - rekordy obecne i z zeszlego miesiaca, 3 - rekordy z tygodnia wstecz od podanej daty */
+    /* recordType przyjmuje nastepujace wartosci: 1 - rekordy wszech czasów, 2 - rekordy obecne i z zeszlego miesiaca, 3 - rekordy z tygodnia wstecz od podanej daty */
   procedure getRecords(recordTypeCur in out kartRecord_type, recordType in integer, recordLimit in integer) as
-  currentDate date;
-  monthsBetweenDates integer;
-  daysBetweenDates integer;
-  
-  lapIdRes lap.id%type;
-  userName varchar2(40);
-  lapMinute lap.minute%type;
-  lapSecond lap.second%type;
-  lapMiliSecond lap.milisecond%type;
+    currentDate date;
+
+    lapIdRes lap.id%type;
+    userName varchar2(40);
+    lapMinute lap.minute%type;
+    lapSecond lap.second%type;
+    lapMiliSecond lap.milisecond%type;
   BEGIN
     if recordType = 1 then
         open recordTypeCur for select id, deref(usr).name, minute, second, milisecond from lap 
         where rownum <= recordLimit order by minute asc, second asc, milisecond asc;
+        
     elsif recordType = 2 then
         select sysdate into currentDate from dual;
-        open recordTypeCur for select id, deref(usr).name, deref(usr).surname, deref(kart).name, averageSpeed,
-        to_char(lapDate, 'YYYY-MM-DD'), minute, second, milisecond from lap 
+        open recordTypeCur for select id, deref(usr).name, minute, second, milisecond from lap 
         where rownum <= recordLimit and
         ((select months_between(lap.lapDate, currentDate) from lap)) = 1 order by minute asc, second asc, milisecond asc;
+        
     elsif recordType = 3 then
         select sysdate into currentDate from dual;
-        select abs(currentDate - lap.lapDate) into daysBetweenDates from lap;
-        open recordTypeCur for select id, deref(usr).name, deref(usr).surname, deref(kart).name, averageSpeed,
-        to_char(lapDate, 'YYYY-MM-DD'), minute, second, milisecond from lap 
+        open recordTypeCur for select id, deref(usr).name, minute, second, milisecond from lap 
         where rownum <= recordLimit and
-        (daysBetweenDates >= 0 and daysBetweenDates <= 7) order by minute asc, second asc, milisecond asc;
+        ( ((select abs(currentDate - lap.lapDate) from lap)) >= 0 and ((select abs(currentDate - lap.lapDate) from lap)) <= 7 ) order by minute asc, second asc, milisecond asc;
+        
     else
-        open recordTypeCur for select id, deref(usr).name, deref(usr).surname, deref(kart).name, averageSpeed,
-        to_char(lapDate, 'YYYY-MM-DD'), minute, second, milisecond from lap 
-        where rownum <= recordLimit order by minute asc, second asc, milisecond asc;
+       open recordTypeCur for select id, deref(usr).name, minute, second, milisecond from lap 
+       where rownum <= recordLimit order by minute asc, second asc, milisecond asc;
     end if;
     
     loop
         fetch recordTypeCur into lapIdRes, userName, lapMinute, lapSecond, lapMilisecond;
-            DBMS_OUTPUT.PUT_LINE('ID okrazena: ' || lapIdRes || 'Uzytkownik: ' || lapIdRes || 'Czas: ' || lapMinute || ':' || lapSecond || ':' || lapMilisecond);
+            DBMS_OUTPUT.PUT_LINE('ID okrazena: ' || lapIdRes || 'Uzytkownik: ' || userName || 'Czas: ' || lapMinute || ':' || lapSecond || ':' || lapMilisecond);
         exit when recordTypeCur%notfound;
     end loop;
     close recordTypeCur;
@@ -235,6 +233,11 @@ PACKAGE BODY package_userActions AS
   procedure makeReservation(userId in integer, startDate in date, endDate in date, kartIds kartIdTab) AS
    reservationTmpId integer;
   BEGIN
+    if (not PACKAGE_CHECKINGRECORDEXIST.isUserFound(userId)) then
+        raise userNotFoundException;
+    elsif (not PACKAGE_USERACTIONS.checkKartIds(kartIds)) then
+        raise kartNotFoundException;
+    end if;
     if (isReservationValid(startDate, endDate)) then
         reservationTmpId:= reservationId.nextval; 
         PACKAGE_ADDRECORD.addReservation(reservationTmpId, userId, startDate, endDate);
@@ -247,6 +250,11 @@ PACKAGE BODY package_userActions AS
     else 
          dbms_output.put_line('Nie mozna dokonac rezerwacji w tym terminie');
     end if;
+  EXCEPTION
+    when userNotFoundException then
+        DBMS_OUTPUT.PUT_LINE('Nie znaleziono uzytkownika o podanym ID');
+    when kartNotFoundException then
+        DBMS_OUTPUT.PUT_LINE('Pojazd o takim id nie istnieje');
   END makeReservation;
     
 END package_userActions;
