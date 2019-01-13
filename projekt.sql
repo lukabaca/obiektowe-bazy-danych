@@ -86,6 +86,8 @@ drop type t_kart force;
 drop type t_lap force;
 drop type kartIdTab force;
 
+
+
 /*---------------------------------------------------*/
 
 /*tworzenie tabel na podstawie typów obiektowych */
@@ -113,19 +115,20 @@ delete from usr;
 /*---------------------------------------------------*/
 
 /*tworzenie sekwencji do generowania id */
-drop sequence userId;
-drop sequence reservationId;
-drop sequence kartId;
-drop sequence kartTechnicalDataId;
-drop sequence lapId;
-drop sequence recordingId;
+drop sequence contactIdSeq;
+drop sequence userIdSeq;
+drop sequence reservationIdSeq;
+drop sequence kartIdSeq;
+drop sequence lapIdSeq;
+drop sequence recordingIdSeq;
 
-create sequence userId minvalue 1 start with 1;
-create sequence reservationId minvalue 1 start with 1;
-create sequence kartId minvalue 1 start with 1;
-create sequence kartTechnicalDataId minvalue 1 start with 1;
-create sequence lapId minvalue 1 start with 1;
-create sequence recordingId minvalue 1 start with 1;
+
+create sequence contactIdSeq minvalue 1 start with 1;
+create sequence userIdSeq minvalue 1 start with 1;
+create sequence reservationIdSeq minvalue 1 start with 1;
+create sequence kartIdSeq minvalue 1 start with 1;
+create sequence lapIdSeq minvalue 1 start with 1;
+create sequence recordingIdSeq minvalue 1 start with 1;
 
 /*---------------------------------------------------*/
 
@@ -136,33 +139,33 @@ insert into role values(1, 'ROLE_USER');
 insert into role values(2, 'ROLE_ADMIN');
 
 /*wstawianie rekordow do tabeli danych kontaktowych */
-insert into contact values(1, 'jan@gmail.com', '505-303-404');
-insert into contact values(2, 'olek@gmail.com', '404-555-666');
+insert into contact values(1, '505-303-404', 'jan@gmail.com');
+insert into contact values(2, '404-555-666', 'olek@gmail.com');
 
 /*wstawianie rekordow do tabeli uzytkownik */
-insert into usr select userId.nextval, 'Jan', 'Kowalski', to_date('1996-04-30', 'YYYY-MM-DD'), 
+insert into usr select userIdSeq.nextval, 'Jan', 'Kowalski', to_date('1996-04-30', 'YYYY-MM-DD'), 
 '1111', 'asd123', ref(contactRef), ref(rolRef), k_recording(t_recording(1, 'youtube.com', 'szybkie nagranie')) from role rolRef, contact contactRef 
 where rolRef.id = 1 and contactRef.id = 1;
 
-insert into usr select userId.nextval, 'Olek', 'Nowak', to_date('1970-01-22', 'YYYY-MM-DD'), 
+insert into usr select userIdSeq.nextval, 'Olek', 'Nowak', to_date('1970-01-22', 'YYYY-MM-DD'), 
 '222', 'afd456', ref(contactRef), ref(rolRef),
 k_recording(t_recording(1, 'youtube.com', 'szybkie nagranie'), t_recording(2, 'youtub2e.com', 'moje nagranie')) 
 from role rolRef, contact contactRef 
 where rolRef.id = 2 and contactRef.id = 2;
 
 /* wstawianie rekordow do tabeli reservation */
-insert into reservation select reservationId.nextval, ref(usrRef), to_date('2019-01-01 15:00:00', 'YYYY-MM-DD HH24:MI:SS'), 
+insert into reservation select reservationIdSeq.nextval, ref(usrRef), to_date('2019-01-01 15:00:00', 'YYYY-MM-DD HH24:MI:SS'), 
 to_date('2019-01-01 15:30:00', 'YY-MM-DD HH24:MI:SS')
 from usr usrRef where usrRef.id = 1;
 
-insert into reservation select reservationId.nextval, ref(usrRef), to_date('2019-01-01 17:20:00', 'YYYY-MM-DD HH24:MI:SS'), 
+insert into reservation select reservationIdSeq.nextval, ref(usrRef), to_date('2019-01-01 17:20:00', 'YYYY-MM-DD HH24:MI:SS'), 
 to_date('2019-01-01 19:30:00', 'YY-MM-DD HH24:MI:SS')
 from usr usrRef where usrRef.id = 1;
 
 /*wstawianie rekordow do tabeli kart */
-insert into kart values(kartId.nextval, 1, 25, 'gt5', 'silnik m52b20');
-insert into kart values(kartId.nextval, 0, 40, 'gt6', 'silnik m52b28');
-insert into kart values(kartId.nextval, 1, 25, 'gt7', 'silnik m54b25');
+insert into kart values(kartIdSeq.nextval, 1, 25, 'gt5', 'silnik m52b20');
+insert into kart values(kartIdSeq.nextval, 0, 40, 'gt6', 'silnik m52b28');
+insert into kart values(kartIdSeq.nextval, 1, 25, 'gt7', 'silnik m54b25');
 
 /*wstawianie rekordow do tabeli reservationKart */
 insert into reservationKart select 
@@ -174,11 +177,11 @@ ref(reserRef), ref(kartRef) from reservation reserRef, kart kartRef
 where reserRef.id = 1 and kartRef.id = 3;
 
 /*wstawianie rekordów do tabeli lap */
-insert into lap select lapId.nextval, ref(usrRef), ref(kartRef),
+insert into lap select lapIdSeq.nextval, ref(usrRef), ref(kartRef),
 44.5, to_date('2019-01-30'), 1, 20, 55 from usr usrRef, kart kartRef
 where usrRef.id = 1 and kartRef.id = 1;
 
-insert into lap select lapId.nextval, ref(usrRef), ref(kartRef),
+insert into lap select lapIdSeq.nextval, ref(usrRef), ref(kartRef),
 55, to_date('2019-01-12'), 0, 55, 24 from usr usrRef, kart kartRef
 where usrRef.id = 1 and kartRef.id = 3;
 
@@ -198,7 +201,8 @@ deref(contact).telephoneNumber, deref(role).name, r.recordingLink, r.title from 
 table (u.recordings) r;
 
 /*reservation */
-select id, to_char(startDate, 'YYYY-MM-DD HH24:MI:SS'), to_char(endDate, 'YYYY-MM-DD HH24:MI:SS'), cost, deref(usr).name, deref(usr).surname from reservation;
+select id, to_char(startDate, 'YYYY-MM-DD HH24:MI:SS'), to_char(endDate, 'YYYY-MM-DD HH24:MI:SS'), deref(usr).name, deref(usr).surname from reservation
+order by startDate desc;
 
 /*kart */
 select * from kart;

@@ -269,7 +269,7 @@ PACKAGE BODY package_userActions AS
         raise kartNotFoundException;
     end if;
     if (isReservationValid(startDate, endDate)) then
-        reservationTmpId:= reservationId.nextval; 
+        reservationTmpId:= reservationIdSeq.nextval; 
         PACKAGE_ADDRECORD.addReservation(reservationTmpId, userId, startDate, endDate);
         for i in 1 .. kartIds.count
         loop
