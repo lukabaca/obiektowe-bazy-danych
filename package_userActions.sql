@@ -60,7 +60,7 @@ PACKAGE BODY package_userActions AS
     close recordTypeCur;
   END getRecords;
 
-    /* 1 - rezerwacje z dnia, 2 - rezerwacje z tygodnia, 3 - rezerwacje z miesiaca */
+    /* reservationType przyjmuje nastepujace wartosci: 1 - rezerwacje z dnia, 2 - rezerwacje z tygodnia, 3 - rezerwacje z miesiaca */
   procedure getReservations(reservationTypeCur in out reservation_type, reservationType in integer, reservationDate in date) AS
     reservationDateDay integer;
     
@@ -86,7 +86,8 @@ PACKAGE BODY package_userActions AS
     
     loop
         fetch reservationTypeCur into reservationId, reservationStartDate, reservationEndDate;
-            DBMS_OUTPUT.PUT_LINE('ID rezerwacji: ' || reservationId || 'Poczatek: ' || reservationStartDate || 'Koniec: ' || reservationEndDate);
+            DBMS_OUTPUT.PUT_LINE('ID rezerwacji: ' || reservationId || 'Poczatek: ' || to_char(reservationStartDate, 'YYYY-MM-DD HH24:MI:SS') 
+            || 'Koniec: ' || to_char(reservationEndDate, 'YYYY-MM-DD HH24:MI:SS'));
         exit when reservationTypeCur%notfound;
     end loop;
     close reservationTypeCur;
@@ -104,13 +105,20 @@ PACKAGE BODY package_userActions AS
    userName varchar2(40);
    userSurname varchar2(40);
   BEGIN
-    open cur;
-        loop
-        fetch cur into reservationId, startDate, endDate, userName, userSurname;
-            exit when cur%notfound;
-            dbms_output.put_line(reservationId || ' ' || startDate || ' ' || endDate || ' ' || ' ' || userName || ' ' || userSurname);
-        end loop;
-    close cur;
+    if (not PACKAGE_CHECKINGRECORDEXIST.isUserFound(userId)) then
+        raise userNotFoundException;
+    else    
+        open cur;
+            loop
+            fetch cur into reservationId, startDate, endDate, userName, userSurname;
+                exit when cur%notfound;
+                dbms_output.put_line(reservationId || ' ' || startDate || ' ' || endDate || ' ' || ' ' || userName || ' ' || userSurname);
+            end loop;
+        close cur;
+    end if;
+    EXCEPTION
+    when userNotFoundException then
+        DBMS_OUTPUT.PUT_LINE('Nie znaleziono uzytkownika o podanym ID');    
   END getUserReservations;
   
 
@@ -131,6 +139,9 @@ PACKAGE BODY package_userActions AS
    lapSecond integer;
    lapMilisecond integer;
   BEGIN
+  if (not PACKAGE_CHECKINGRECORDEXIST.isUserFound(userId)) then
+        raise userNotFoundException;
+  else    
     open cur;
         loop
         fetch cur into lapId, userName, userSurname, kartName, averageSpeed, lapDate, lapMinute, lapSecond, lapMilisecond;
@@ -139,6 +150,10 @@ PACKAGE BODY package_userActions AS
             || lapDate || ' ' || lapMinute || ' ' || lapSecond || ' ' || lapMilisecond);
         end loop;
     close cur;
+ end if;
+ EXCEPTION
+    when userNotFoundException then
+        DBMS_OUTPUT.PUT_LINE('Nie znaleziono uzytkownika o podanym ID');  
   END getUserLaps;
 
   procedure getKartsInReservation(reservationId in integer) AS
@@ -149,6 +164,9 @@ PACKAGE BODY package_userActions AS
     reservationEnddate date;
     kartName varchar2(40);
   BEGIN
+    if (not PACKAGE_CHECKINGRECORDEXIST.isReservationFound(reservationId)) then
+        raise userNotFoundException;
+    else    
        open cur;
         loop
         fetch cur into reservationStartdate, reservationEnddate, kartName;
@@ -157,6 +175,10 @@ PACKAGE BODY package_userActions AS
             to_char(reservationEnddate, 'YYYY-MM-DD HH24:MI:SS') || ' ' || kartName);
         end loop;
     close cur;
+    end if;
+    EXCEPTION
+    when reservationNotFoundException then
+        DBMS_OUTPUT.PUT_LINE('Nie znaleziono rezerwacji o podanym ID');   
   END getKartsInReservation;
   
 
@@ -259,82 +281,10 @@ PACKAGE BODY package_userActions AS
     
 END package_userActions;
 
+/*-----------------------------------------------------*/
+
 /*test dzialania getRecords */
-
-set SERVEROUTPUT ON;
-declare refk package_userActions.kartRecord_type;
-begin
-    package_userActions.getRecords(refk, 1, 10);
-end;
-
-
-set SERVEROUTPUT ON;
-declare refk package_userActions.reservation_type;
-begin
-    package_userActions.getReservations(refk, 6, '2019-01-19');
-end;
-
-
-set SERVEROUTPUT ON;
-DECLARE
-  USERID NUMBER;
-BEGIN
-  USERID := 1;
-  PACKAGE_USERACTIONS.GETUSERRESERVATIONS(
-    USERID => USERID
-  );
-END;
-
-DECLARE
-  USERID NUMBER;
-BEGIN
-  USERID := 1;
-  PACKAGE_USERACTIONS.GETUSERLAPS(
-    USERID => USERID
-  );
---rollback; 
-END;
-
-DECLARE
-  RESERVATIONID NUMBER;
-BEGIN
-  RESERVATIONID := 1;
-
-  PACKAGE_USERACTIONS.GETKARTSINRESERVATION(
-    RESERVATIONID => RESERVATIONID
-  );
---rollback; 
-END;
-
-BEGIN
-  PACKAGE_USERACTIONS.GETKARTS();
---rollback; 
-END;
-
-
-DECLARE
-  RESSTARTDATE DATE;
-  RESENDDATE DATE;
-  v_Return BOOLEAN;
-BEGIN
-  RESSTARTDATE := to_date('2019-01-13 16:00:00', 'YYYY-MM-DD HH24:MI:SS');
-  RESENDDATE := to_date('2019-01-13 17:00:00', 'YYYY-MM-DD HH24:MI:SS');
-
-  v_Return := PACKAGE_USERACTIONS.ISRESERVATIONVALID(
-    RESSTARTDATE => RESSTARTDATE,
-    RESENDDATE => RESENDDATE
-  );
-
-IF (v_Return) THEN 
-    DBMS_OUTPUT.PUT_LINE('v_Return = ' || 'TRUE');
-  ELSE
-    DBMS_OUTPUT.PUT_LINE('v_Return = ' || 'FALSE');
-  END IF;
-
-  --:v_Return := v_Return;
---rollback; 
-END;
-
+set serveroutput on;
 
 
 commit;
