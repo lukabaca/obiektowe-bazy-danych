@@ -6,20 +6,15 @@ create or replace package package_userActions as
     
     procedure getRecords(recordTypeCur in out kartRecord_type, recordType in integer, recordLimit in integer);
     procedure getReservations(reservationTypeCur in out reservation_type, reservationType in integer, reservationDate in date);
-    
     procedure getUserReservations(userId in integer);
-    
     procedure getUserLaps(userId in integer);
     procedure getKartsInReservation(reservationId in integer);
-    
     procedure getKarts;
     
-    
     function isReservationValid(resStartDate in date, resEndDate in date) return boolean;
-    
-   procedure makeReservation(userId in integer, startDate in date, endDate in date, cost in number,
-   kartIds kartIdTab);
-    
+    procedure makeReservation(userId in integer, startDate in date, endDate in date, cost in number,
+    kartIds kartIdTab);
+
 end package_userActions;
 
 CREATE OR REPLACE
@@ -220,14 +215,17 @@ PACKAGE BODY package_userActions AS
 
   procedure makeReservation(userId in integer, startDate in date, endDate in date, cost in number,
    kartIds kartIdTab) AS
-   
+   reservationTmpId integer;
   BEGIN
     if (isReservationValid(startDate, endDate)) then
-        PACKAGE_ADDRECORD.addReservation(reservationId.nextval, userId, startDate, endDate, cost);
+        reservationTmpId:= reservationId.nextval; 
+        PACKAGE_ADDRECORD.addReservation(reservationTmpId, userId, startDate, endDate, cost);
         for i in 1 .. kartIds.count
         loop
-            DBMS_OUTPUT.PUT_LINE('Index: ' || to_char(i) || ' ' || to_char(kartIds(i)));
-        end loop;    
+            PACKAGE_ADDRECORD.ADDRESERVATIONKART(reservationTmpId, kartIds(i));
+        end loop;
+        DBMS_OUTPUT.PUT_LINE('Dokonano rezerwacji w terminie: ' || to_char(startDate, 'YYYY-MM-DD HH24:MI:SS') || '-' 
+        || to_char(endDate, 'YYYY-MM-DD HH24:MI:SS'));
     else 
          dbms_output.put_line('Nie mozna dokonac rezerwacji w tym terminie');
     end if;

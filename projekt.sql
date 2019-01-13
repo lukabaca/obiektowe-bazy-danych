@@ -39,8 +39,7 @@ create or replace type t_reservation as object (
     id integer,
     usr REF t_user,
     startDate date,
-    endDate date,
-    cost number(10,2)
+    endDate date
 );
 
 /*typ reprezentujacy gokart */
@@ -151,11 +150,11 @@ where rolRef.id = 2 and contactRef.id = 2;
 
 /* wstawianie rekordow do tabeli reservation */
 insert into reservation select reservationId.nextval, ref(usrRef), to_date('2019-01-01 15:00:00', 'YYYY-MM-DD HH24:MI:SS'), 
-to_date('2019-01-01 15:30:00', 'YY-MM-DD HH24:MI:SS'), 25
+to_date('2019-01-01 15:30:00', 'YY-MM-DD HH24:MI:SS')
 from usr usrRef where usrRef.id = 1;
 
 insert into reservation select reservationId.nextval, ref(usrRef), to_date('2019-01-01 17:20:00', 'YYYY-MM-DD HH24:MI:SS'), 
-to_date('2019-01-01 19:30:00', 'YY-MM-DD HH24:MI:SS'), 35
+to_date('2019-01-01 19:30:00', 'YY-MM-DD HH24:MI:SS')
 from usr usrRef where usrRef.id = 1;
 
 /*wstawianie rekordow do tabeli kart */
@@ -370,26 +369,7 @@ PROCEDURE addContact(contactId in integer, telephoneNumber in varchar2, email in
 END PACKAGE_ADDRECORD;
 
 /*---------------------------------------------------*/
-create or replace package package_userActions as
-    type kartRecord_type is ref cursor;
-    type reservation_type is ref cursor;
-    
-    userNotFound exception;
-    
-    procedure getRecords(recordTypeCur in out kartRecord_type, recordType in integer);
-    procedure getReservations(reservationTypeCur in out reservation_type, reservationType in integer);
-    /*
-    procedure getUserReservations(userId in integer);
-    procedure getUserLaps(userId in integer);
-    procedure getKartsInReservation(reservationId in integer);
-    
-    procedure getKarts;
-    
-    function isReservationValid(startDate in date, endDate in date) return boolean;
-    procedure makeReservation(userId in integer, startDate in date, endDate in date, cost in number,
-    byTimeReservationType in number, description in varchar2, kartIds kartIdTab);
-    */
-end package_userActions;
+
 
 
 set SERVEROUTPUT ON;
