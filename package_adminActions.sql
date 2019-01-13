@@ -60,20 +60,11 @@ PACKAGE BODY PACKAGE_ADMINACTIONS AS
 
 END PACKAGE_ADMINACTIONS;
 
-set serveroutput on;
-
-
-
-
-
-
-
-
-
 
 /*-----------------------------------------------------*/
 
 /*testowanie dzialania */
+set serveroutput on;
 
 DECLARE
   USERID NUMBER;
