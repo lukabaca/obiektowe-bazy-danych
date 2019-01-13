@@ -166,7 +166,7 @@ PACKAGE BODY package_userActions AS
     kartName varchar2(40);
   BEGIN
     if (not PACKAGE_CHECKINGRECORDEXIST.isReservationFound(reservationId)) then
-        raise userNotFoundException;
+        raise reservationNotFoundException;
     else    
        open cur;
         loop
@@ -196,7 +196,9 @@ PACKAGE BODY package_userActions AS
         loop
         fetch cur into kartId, kartAvailability, kartPrize, kartName, kartDescritpion;
             exit when cur%notfound;
-            dbms_output.put_line(kartId || ' ' || kartAvailability || ' ' || kartPrize || ' ' || kartName || ' ' || kartDescritpion);
+            if kartAvailability = 1 then
+                dbms_output.put_line(kartId || ' '  || kartPrize || ' ' || kartName || ' ' || kartDescritpion);
+            end if;    
         end loop;
     close cur;
   END getKarts;
@@ -276,7 +278,7 @@ PACKAGE BODY package_userActions AS
     end if;
     
     select startDate + NUMTODSINTERVAL(numberOfRides * 10, 'minute') into endDate  from dual;
-    dbms_output.put_line('END date: ' || endDate);
+    --dbms_output.put_line('END date: ' || endDate);
     
     if (isReservationValid(startDate, endDate)) then
         reservationTmpId:= reservationIdSeq.nextval; 
@@ -294,7 +296,7 @@ PACKAGE BODY package_userActions AS
     when userNotFoundException then
         DBMS_OUTPUT.PUT_LINE('Nie znaleziono uzytkownika o podanym ID');
     when kartNotFoundException then
-        DBMS_OUTPUT.PUT_LINE('Pojazd o takim id nie istnieje');
+        DBMS_OUTPUT.PUT_LINE('Pojazd o takim id nie istnieje lub jest obecnie niedostepny');
     when wrongNumberOfRidesException then    
         DBMS_OUTPUT.PUT_LINE('Podano niepoprawna liczbe przejazdow, musi sie ona zawierca miedzy 1 a 5');
   END makeReservation;
@@ -305,6 +307,24 @@ END package_userActions;
 
 /*test dzialania getRecords */
 set serveroutput on;
+
+/* pobieranie listy dostepnych gokartow */
+BEGIN
+  PACKAGE_USERACTIONS.GETKARTS();
+--rollback; 
+END;
+
+/*pobieranie pojazdow z danej rezerwacji */
+DECLARE
+  RESERVATIONID NUMBER;
+BEGIN
+  RESERVATIONID := 1;
+
+  PACKAGE_USERACTIONS.GETKARTSINRESERVATION(
+    RESERVATIONID => RESERVATIONID
+  );
+--rollback; 
+END;
 
 
 commit;
