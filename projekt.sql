@@ -217,23 +217,23 @@ set SERVEROUTPUT ON;
 
 create or replace package package_CheckingRecordExist as
 
-    FUNCTION isContactFound RETURN BOOLEAN;
-    FUNCTION isUserFound RETURN BOOLEAN;
-    FUNCTION isRoleFound RETURN BOOLEAN;
-    FUNCTION isReservationFound RETURN BOOLEAN;
-    FUNCTION isKartFound RETURN BOOLEAN;
-    FUNCTION isLapFound RETURN BOOLEAN;
+    FUNCTION isContactFound(contactId in integer) RETURN BOOLEAN;
+    FUNCTION isUserFound(userId in integer) RETURN BOOLEAN;
+    FUNCTION isRoleFound(roleId in integer)  RETURN BOOLEAN;
+    FUNCTION isReservationFound(reservationId in integer) RETURN BOOLEAN;
+    FUNCTION isKartFound(kartId in integer) RETURN BOOLEAN;
+    FUNCTION isLapFound(lapId in integer) RETURN BOOLEAN;
     
 end package_CheckingRecordExist;
 
 CREATE OR REPLACE
 PACKAGE BODY PACKAGE_CHECKINGRECORDEXIST AS
 
-  FUNCTION isContactFound RETURN BOOLEAN AS
+  FUNCTION isContactFound(contactId in integer) RETURN BOOLEAN as
   numberOfRecordsFound number;
   BEGIN
-    select count(id) into numberOfRecordsFound from contact ;
-    if numberOfRecordsFound > 0 then
+    select count(id) into numberOfRecordsFound from contact where contact.id = contactId;
+    if numberOfRecordsFound = 1 then
         return true;
     else
         return false;
@@ -241,55 +241,55 @@ PACKAGE BODY PACKAGE_CHECKINGRECORDEXIST AS
   END isContactFound;
 
 
-  FUNCTION isUserFound RETURN BOOLEAN AS
+ FUNCTION isUserFound(userId in integer) RETURN BOOLEAN as
   numberOfRecordsFound number;
   BEGIN
-    select count(id) into numberOfRecordsFound from usr ;
-    if numberOfRecordsFound > 0 then
+    select count(id) into numberOfRecordsFound from usr where usr.id = userId;
+    if numberOfRecordsFound = 1 then
         return true;
     else
         return false;
     end if;
   END isUserFound;
 
-  FUNCTION isRoleFound RETURN BOOLEAN AS
+  FUNCTION isRoleFound(roleId in integer)  RETURN BOOLEAN as
   numberOfRecordsFound number;
   BEGIN
-    select count(id) into numberOfRecordsFound from role ;
-    if numberOfRecordsFound > 0 then
+    select count(id) into numberOfRecordsFound from role where role.id = roleId;
+    if numberOfRecordsFound = 1 then
         return true;
     else
         return false;
     end if;
   END isRoleFound;
 
-  FUNCTION isReservationFound RETURN BOOLEAN AS
+  FUNCTION isReservationFound(reservationId in integer) RETURN BOOLEAN as
    numberOfRecordsFound number;
   BEGIN
-    select count(id) into numberOfRecordsFound from reservation ;
-    if numberOfRecordsFound > 0 then
+    select count(id) into numberOfRecordsFound from reservation where reservation.id = reservationId;
+    if numberOfRecordsFound = 1 then
         return true;
     else
         return false;
     end if;
   END isReservationFound;
 
-  FUNCTION isKartFound RETURN BOOLEAN AS
+  FUNCTION isKartFound(kartId in integer) RETURN BOOLEAN as
   numberOfRecordsFound number;
   BEGIN
-    select count(id) into numberOfRecordsFound from kart ;
-    if numberOfRecordsFound > 0 then
+    select count(id) into numberOfRecordsFound from kart where kart.id = kartId;
+    if numberOfRecordsFound = 1 then
         return true;
     else
         return false;
     end if;
   END isKartFound;
 
-  FUNCTION isLapFound RETURN BOOLEAN AS
+   FUNCTION isLapFound(lapId in integer) RETURN BOOLEAN as
    numberOfRecordsFound number;
   BEGIN
-    select count(id) into numberOfRecordsFound from lap ;
-    if numberOfRecordsFound > 0 then
+    select count(id) into numberOfRecordsFound from lap where lap.id = lapId;
+    if numberOfRecordsFound = 1 then
         return true;
     else
         return false;
@@ -306,8 +306,7 @@ create or replace package package_addRecord as
     PROCEDURE addRole(roleId in integer, name in varchar2);
     PROCEDURE addUser(userId in integer, name in varchar2, surname in varchar2, birthDate in date, pesel in varchar2,
     document_id in varchar2, contactId in integer, roleId in integer, recordingCollection in k_recording);
-    PROCEDURE addReservation(reservationId in integer, userId in integer, startDate in date, endDate in date, 
-    cost in number);
+    PROCEDURE addReservation(reservationId in integer, userId in integer, startDate in date, endDate in date);
     PROCEDURE addKart(kartId in integer, availability number, prize in number, name in varchar2, descripiton in varchar2);
     PROCEDURE addReservationKart(reservationId in integer, kartId in integer);
     PROCEDURE addLap(lapId in integer, userId in integer, kartId in integer, averageSpeed in number, lapDate in date,
@@ -336,11 +335,9 @@ PROCEDURE addContact(contactId in integer, telephoneNumber in varchar2, email in
     where rolRef.id = roleId and contactRef.id = contactId;
   END addUser;
   
-   PROCEDURE addReservation(reservationId in integer, userId in integer, startDate in date, endDate in date, 
-    cost in number) AS
+   PROCEDURE addReservation(reservationId in integer, userId in integer, startDate in date, endDate in date) AS
   BEGIN
-    insert into reservation select reservationId, ref(usrRef), startDate, endDate, 
-    cost
+    insert into reservation select reservationId, ref(usrRef), startDate, endDate
     from usr usrRef where usrRef.id = userId;
   END addReservation;
 
