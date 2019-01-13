@@ -80,3 +80,7 @@ PACKAGE BODY PACKAGE_CHECKINGRECORDEXIST AS
   END isLapFound;
   
 END PACKAGE_CHECKINGRECORDEXIST;
+
+/*---------------------------------------------------*/
+/*testowanie dzialania */
+set SERVEROUTPUT ON;
