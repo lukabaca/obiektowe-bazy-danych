@@ -17,8 +17,8 @@ create or replace package package_userActions as
     
     function isReservationValid(resStartDate in date, resEndDate in date) return boolean;
     
-    procedure makeReservation(userId in integer, startDate in date, endDate in date, cost in number,
-    byTimeReservationType in number, description in varchar2, kartIds kartIdTab);
+   procedure makeReservation(userId in integer, startDate in date, endDate in date, cost in number,
+   kartIds kartIdTab);
     
 end package_userActions;
 
@@ -204,15 +204,11 @@ PACKAGE BODY package_userActions AS
     elsif startDateHour < 12 or endDateHour >= 20 then
         return false;
     else
-    --DBMS_OUTPUT.PUT_LINE(to_char(resStartDate, 'YYYY-MM-DD HH24:MI:SS'));
-    --DBMS_OUTPUT.PUT_LINE(to_char(resEndDate, 'YYYY-MM-DD HH24:MI:SS'));
-    --DBMS_OUTPUT.PUT_LINE(reservationsReturned);
         select count(id) into reservationsReturned from reservation where
 		(( (resStartDate >= reservation.startDate) and (resEndDate <= reservation.endDate) )
 		or ( (resStartDate < reservation.startDate) and (resEndDate > reservation.startDate) and (resEndDate <= reservation.endDate) )
 		or ( (resEndDate > reservation.endDate) and (resStartDate >= reservation.startDate) and (resStartDate < reservation.endDate) )
 		or ( (resStartDate < reservation.startDate) and (resEndDate > reservation.endDate)) );
-        --DBMS_OUTPUT.PUT_LINE(reservationsReturned);
 		if reservationsReturned = 0 then
 			return true;
 		else 
@@ -223,9 +219,11 @@ PACKAGE BODY package_userActions AS
   END isReservationValid;
 
   procedure makeReservation(userId in integer, startDate in date, endDate in date, cost in number,
-    byTimeReservationType in number, description in varchar2, kartIds kartIdTab) AS
+   kartIds kartIdTab) AS
+   
   BEGIN
     if (isReservationValid(startDate, endDate)) then
+        PACKAGE_ADDRECORD.addReservation(reservationId.nextval, userId, startDate, endDate, cost);
         for i in 1 .. kartIds.count
         loop
             DBMS_OUTPUT.PUT_LINE('Index: ' || to_char(i) || ' ' || to_char(kartIds(i)));
@@ -291,16 +289,16 @@ END;
 
 
 DECLARE
-  STARTDATE DATE;
-  ENDDATE DATE;
+  RESSTARTDATE DATE;
+  RESENDDATE DATE;
   v_Return BOOLEAN;
 BEGIN
-  STARTDATE := NULL;
-  ENDDATE := NULL;
+  RESSTARTDATE := to_date('2019-01-13 16:00:00', 'YYYY-MM-DD HH24:MI:SS');
+  RESENDDATE := to_date('2019-01-13 17:00:00', 'YYYY-MM-DD HH24:MI:SS');
 
   v_Return := PACKAGE_USERACTIONS.ISRESERVATIONVALID(
-    STARTDATE => to_date('2019-01-12 16:00:00', 'YYYY-MM-DD HH24:MI:SS'),
-    ENDDATE => to_date('2019-01-12 17:00:00', 'YYYY-MM-DD HH24:MI:SS')
+    RESSTARTDATE => RESSTARTDATE,
+    RESENDDATE => RESENDDATE
   );
 
 IF (v_Return) THEN 
@@ -308,9 +306,10 @@ IF (v_Return) THEN
   ELSE
     DBMS_OUTPUT.PUT_LINE('v_Return = ' || 'FALSE');
   END IF;
+
   --:v_Return := v_Return;
 --rollback; 
 END;
 
-
+commit;
 

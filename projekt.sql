@@ -308,7 +308,7 @@ create or replace package package_addRecord as
     PROCEDURE addUser(userId in integer, name in varchar2, surname in varchar2, birthDate in date, pesel in varchar2,
     document_id in varchar2, contactId in integer, roleId in integer, recordingCollection in k_recording);
     PROCEDURE addReservation(reservationId in integer, userId in integer, startDate in date, endDate in date, 
-    cost in number, byTimeReservationType in number, description in varchar2);
+    cost in number);
     PROCEDURE addKart(kartId in integer, availability number, prize in number, name in varchar2, descripiton in varchar2);
     PROCEDURE addReservationKart(reservationId in integer, kartId in integer);
     PROCEDURE addLap(lapId in integer, userId in integer, kartId in integer, averageSpeed in number, lapDate in date,
@@ -338,10 +338,10 @@ PROCEDURE addContact(contactId in integer, telephoneNumber in varchar2, email in
   END addUser;
   
    PROCEDURE addReservation(reservationId in integer, userId in integer, startDate in date, endDate in date, 
-    cost in number, byTimeReservationType in number, description in varchar2) AS
+    cost in number) AS
   BEGIN
     insert into reservation select reservationId, ref(usrRef), startDate, endDate, 
-    cost, byTimeReservationType, description
+    cost
     from usr usrRef where usrRef.id = userId;
   END addReservation;
 
