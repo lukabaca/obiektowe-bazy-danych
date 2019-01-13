@@ -111,6 +111,10 @@ drop table lap;
 delete from role;
 delete from contact;
 delete from usr;
+delete from reservation;
+delete from lap;
+delete from reservationKart;
+delete from kart;
 
 /*---------------------------------------------------*/
 
@@ -121,6 +125,7 @@ drop sequence reservationIdSeq;
 drop sequence kartIdSeq;
 drop sequence lapIdSeq;
 drop sequence recordingIdSeq;
+drop sequence roleIdSeq;
 
 
 create sequence contactIdSeq minvalue 1 start with 1;
@@ -129,18 +134,19 @@ create sequence reservationIdSeq minvalue 1 start with 1;
 create sequence kartIdSeq minvalue 1 start with 1;
 create sequence lapIdSeq minvalue 1 start with 1;
 create sequence recordingIdSeq minvalue 1 start with 1;
+create sequence roleIdSeq minvalue 1 start with 1;
 
 /*---------------------------------------------------*/
 
 /* inserty */
 
 /* wstawianie rekordów do tabeli role */
-insert into role values(1, 'ROLE_USER');
-insert into role values(2, 'ROLE_ADMIN');
+insert into role values(roleIdSeq.nextval, 'ROLE_USER');
+insert into role values(roleIdSeq.nextval, 'ROLE_ADMIN');
 
 /*wstawianie rekordow do tabeli danych kontaktowych */
-insert into contact values(1, '505-303-404', 'jan@gmail.com');
-insert into contact values(2, '404-555-666', 'olek@gmail.com');
+insert into contact values(contactIdSeq.nextval, '505-303-404', 'jan@gmail.com');
+insert into contact values(contactIdSeq.nextval, '404-555-666', 'olek@gmail.com');
 
 /*wstawianie rekordow do tabeli uzytkownik */
 insert into usr select userIdSeq.nextval, 'Jan', 'Kowalski', to_date('1996-04-30', 'YYYY-MM-DD'), 
@@ -202,7 +208,7 @@ table (u.recordings) r;
 
 /*reservation */
 select id, to_char(startDate, 'YYYY-MM-DD HH24:MI:SS'), to_char(endDate, 'YYYY-MM-DD HH24:MI:SS'), deref(usr).name, deref(usr).surname from reservation
-order by startDate desc;
+order by id asc;
 
 /*kart */
 select * from kart;
