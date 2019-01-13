@@ -235,6 +235,8 @@ PACKAGE BODY package_userActions AS
   
   function checkKartIds(kartIds kartIdTab) return boolean as
     isValid boolean;
+    
+    kartAvailability number;
   begin
     isValid:= true;
     if kartIds.count > 0 then
@@ -243,6 +245,12 @@ PACKAGE BODY package_userActions AS
             if (not PACKAGE_CHECKINGRECORDEXIST.isKartFound(kartIds(i))) then
                 isValid:= false;
                 exit;
+            else 
+                select kart.availability into kartAvailability from kart where kart.id = kartIds(i);
+                if kartAvailability = 0 then
+                    isValid:= false;
+                    exit;
+                end if;
             end if;
         end loop;
     else 
