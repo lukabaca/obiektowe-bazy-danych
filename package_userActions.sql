@@ -55,8 +55,8 @@ PACKAGE BODY package_userActions AS
     
     loop
         fetch recordTypeCur into lapIdRes, userName, lapMinute, lapSecond, lapMilisecond;
+            exit when recordTypeCur%notfound;
             DBMS_OUTPUT.PUT_LINE('ID okrazena: ' || lapIdRes || 'Uzytkownik: ' || userName || 'Czas: ' || lapMinute || ':' || lapSecond || ':' || lapMilisecond);
-        exit when recordTypeCur%notfound;
     end loop;
     close recordTypeCur;
   END getRecords;
@@ -64,6 +64,8 @@ PACKAGE BODY package_userActions AS
     /* reservationType przyjmuje nastepujace wartosci: 1 - rezerwacje z dnia, 2 - rezerwacje z tygodnia, 3 - rezerwacje z miesiaca */
   procedure getReservations(reservationTypeCur in out reservation_type, reservationType in integer, reservationDate in date) AS
     reservationDateDay integer;
+    reservationDateMonth integer;
+    reservationDateYear integer;
     
     reservationId reservation.id%type;
     reservationStartDate reservation.startDate%type;
@@ -71,8 +73,15 @@ PACKAGE BODY package_userActions AS
   BEGIN
     if reservationType = 1 then
         select extract(day from reservationDate) into reservationDateDay from dual; 
+        select extract(month from reservationDate) into reservationDateMonth from dual; 
+        select extract(year from reservationDate) into reservationDateYear from dual; 
+        
         open reservationTypeCur for select id, startDate, endDate from reservation
-        where ((select extract(day from reservation.startDate) from dual) = reservationDateDay); 
+        where ( 
+            (select extract(day from reservation.startDate) from dual) = reservationDateDay 
+            and (select extract(month from reservation.startDate) from dual) = reservationDateMonth 
+            and (select extract(year from reservation.startDate) from dual) = reservationDateYear 
+        ); 
         
     elsif reservationType = 2 then
         open reservationTypeCur for select id, startDate, endDate from reservation
@@ -87,9 +96,9 @@ PACKAGE BODY package_userActions AS
     
     loop
         fetch reservationTypeCur into reservationId, reservationStartDate, reservationEndDate;
+            exit when reservationTypeCur%notfound;
             DBMS_OUTPUT.PUT_LINE('ID rezerwacji: ' || reservationId || 'Poczatek: ' || to_char(reservationStartDate, 'YYYY-MM-DD HH24:MI:SS') 
             || 'Koniec: ' || to_char(reservationEndDate, 'YYYY-MM-DD HH24:MI:SS'));
-        exit when reservationTypeCur%notfound;
     end loop;
     close reservationTypeCur;
   END getReservations;
@@ -326,6 +335,103 @@ BEGIN
 --rollback; 
 END;
 
+/*pobieranie okrazen uzytkownika */
+DECLARE
+  USERID NUMBER;
+BEGIN
+  USERID := NULL;
+
+  PACKAGE_USERACTIONS.GETUSERLAPS(
+    USERID => USERID
+  );
+--rollback; 
+END;
+
+/*pobieranie rezerwacji uzytkownika */
+DECLARE
+  USERID NUMBER;
+BEGIN
+  USERID := 1;
+
+  PACKAGE_USERACTIONS.GETUSERRESERVATIONS(
+    USERID => USERID
+  );
+--rollback; 
+END;
+
+/* pobieranie rekordow toru */
+DECLARE
+  RECORDTYPECUR LUKA.PACKAGE_USERACTIONS.kartRecord_type;
+  RECORDTYPE NUMBER;
+  RECORDLIMIT NUMBER;
+BEGIN
+  RECORDTYPECUR := RECORDTYPECUR;
+  RECORDTYPE := 1;
+  RECORDLIMIT := 10;
+
+  PACKAGE_USERACTIONS.GETRECORDS(
+    RECORDTYPECUR => RECORDTYPECUR,
+    RECORDTYPE => RECORDTYPE,
+    RECORDLIMIT => RECORDLIMIT
+  );
+ 
+--DBMS_OUTPUT.PUT_LINE('RECORDTYPECUR = ' || RECORDTYPECUR);
+  --:RECORDTYPECUR := RECORDTYPECUR; --<-- Cursor
+--rollback; 
+END;
+
+/*pobieranie rezerwacji dla podanej daty*/
+
+/*dla konkretnego dnia */
+DECLARE
+  RESERVATIONTYPECUR LUKA.PACKAGE_USERACTIONS.reservation_type;
+  RESERVATIONTYPE NUMBER;
+  RESERVATIONDATE DATE;
+BEGIN
+  RESERVATIONTYPECUR := RESERVATIONTYPECUR;
+  RESERVATIONTYPE := 1;
+  RESERVATIONDATE := to_date('2019-01-01 17:20:00', 'YYYY-MM-DD HH24:MI:SS');
+
+  PACKAGE_USERACTIONS.GETRESERVATIONS(
+    RESERVATIONTYPECUR => RESERVATIONTYPECUR,
+    RESERVATIONTYPE => RESERVATIONTYPE,
+    RESERVATIONDATE => RESERVATIONDATE
+  );
+END;
+
+/*dla tygodnia do przodu od podanej daty*/
+DECLARE
+  RESERVATIONTYPECUR LUKA.PACKAGE_USERACTIONS.reservation_type;
+  RESERVATIONTYPE NUMBER;
+  RESERVATIONDATE DATE;
+BEGIN
+  RESERVATIONTYPECUR := RESERVATIONTYPECUR;
+  RESERVATIONTYPE := 2;
+  RESERVATIONDATE := to_date('2019-02-01 17:20:00', 'YYYY-MM-DD HH24:MI:SS');
+
+  PACKAGE_USERACTIONS.GETRESERVATIONS(
+    RESERVATIONTYPECUR => RESERVATIONTYPECUR,
+    RESERVATIONTYPE => RESERVATIONTYPE,
+    RESERVATIONDATE => RESERVATIONDATE
+  );
+END;
+
+/*dla miesiaca z podanej daty */
+DECLARE
+  RESERVATIONTYPECUR LUKA.PACKAGE_USERACTIONS.reservation_type;
+  RESERVATIONTYPE NUMBER;
+  RESERVATIONDATE DATE;
+BEGIN
+  RESERVATIONTYPECUR := RESERVATIONTYPECUR;
+  RESERVATIONTYPE := 3;
+  RESERVATIONDATE := to_date('2019-02-01 17:20:00', 'YYYY-MM-DD HH24:MI:SS');
+
+  PACKAGE_USERACTIONS.GETRESERVATIONS(
+    RESERVATIONTYPECUR => RESERVATIONTYPECUR,
+    RESERVATIONTYPE => RESERVATIONTYPE,
+    RESERVATIONDATE => RESERVATIONDATE
+  );
+END;
 
 commit;
 
