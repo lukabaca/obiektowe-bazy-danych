@@ -150,7 +150,8 @@ insert into contact values(contactIdSeq.nextval, '404-555-666', 'olek@gmail.com'
 
 /*wstawianie rekordow do tabeli uzytkownik */
 insert into usr select userIdSeq.nextval, 'Jan', 'Kowalski', to_date('1996-04-30', 'YYYY-MM-DD'), 
-'1111', 'asd123', ref(contactRef), ref(rolRef), k_recording(t_recording(1, 'youtube.com', 'szybkie nagranie')) from role rolRef, contact contactRef 
+'1111', 'asd123', ref(contactRef), ref(rolRef), k_recording(t_recording(recordingIdSeq.nextval, 'youtubeaa.com', 'nag1'), 
+t_recording(recordingIdSeq.nextval, 'youtubebbb.com', 'nag2')) from role rolRef, contact contactRef 
 where rolRef.id = 1 and contactRef.id = 1;
 
 insert into usr select userIdSeq.nextval, 'Olek', 'Nowak', to_date('1970-01-22', 'YYYY-MM-DD'), 
@@ -204,7 +205,9 @@ select * from role;
 /*user */
 select u.id, u.name, u.surname, u.birthdate, u.pesel, u.document_id, deref(contact).email, 
 deref(contact).telephoneNumber, deref(role).name, r.recordingLink, r.title from usr u, 
-table (u.recordings) r;
+table (u.recordings) r order by u.id;
+
+select * from usr order by id;
 
 /*reservation */
 select id, to_char(startDate, 'YYYY-MM-DD HH24:MI:SS'), to_char(endDate, 'YYYY-MM-DD HH24:MI:SS'), deref(usr).name, deref(usr).surname from reservation

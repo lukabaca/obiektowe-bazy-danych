@@ -8,7 +8,7 @@ create or replace package package_addRecord as
 
     PROCEDURE addContact(contactId in integer, telephoneNumber in varchar2, email in varchar2);
     PROCEDURE addRole(roleId in integer, name in varchar2);
-    PROCEDURE addUser(userId in integer, name in varchar2, surname in varchar2, birthDate in date, pesel in varchar2,
+    PROCEDURE addUser(userId in integer, userName in varchar2, surname in varchar2, birthDate in date, pesel in varchar2,
     document_id in varchar2, contactId in integer, roleId in integer, recordingCollection in k_recording);
     PROCEDURE addReservation(reservationId in integer, userId in integer, startDate in date, endDate in date);
     PROCEDURE addKart(kartId in integer, availability number, prize in number, name in varchar2, descripiton in varchar2);
@@ -33,7 +33,7 @@ PROCEDURE addContact(contactId in integer, telephoneNumber in varchar2, email in
     DBMS_OUTPUT.PUT_LINE('Dodano role: ' || roleId || ' ' || name);
   END addRole;
 
- PROCEDURE addUser(userId in integer, name in varchar2, surname in varchar2, birthDate in date, pesel in varchar2,
+ PROCEDURE addUser(userId in integer, userName in varchar2, surname in varchar2, birthDate in date, pesel in varchar2,
     document_id in varchar2, contactId in integer, roleId in integer, recordingCollection in k_recording) AS
   BEGIN
     if (not PACKAGE_CHECKINGRECORDEXIST.isContactFound(contactId)) then
@@ -41,7 +41,7 @@ PROCEDURE addContact(contactId in integer, telephoneNumber in varchar2, email in
     elsif (not PACKAGE_CHECKINGRECORDEXIST.isRoleFound(roleId)) then
         raise roleNotFoundException;
     else
-        insert into usr select userId, name, surname, birthDate, 
+        insert into usr select userId, userName, surname, birthDate, 
         pesel, document_id, ref(contactRef), ref(rolRef), recordingCollection from role rolRef, contact contactRef 
         where rolRef.id = roleId and contactRef.id = contactId;
         DBMS_OUTPUT.PUT_LINE('Poprawnie dodano uzytkownika');
@@ -189,7 +189,7 @@ END;
 /*dodawanie uzytkownika */
 DECLARE
   USERID NUMBER;
-  NAME VARCHAR2(200);
+  USERNAME VARCHAR2(200);
   SURNAME VARCHAR2(200);
   BIRTHDATE DATE;
   PESEL VARCHAR2(200);
@@ -199,19 +199,20 @@ DECLARE
   RECORDINGCOLLECTION LUKA.K_RECORDING;
 BEGIN
   USERID := userIdSeq.nextval;
-  NAME := 'Jan';
-  SURNAME := 'Kowalski';
+  USERNAME := 'Adam';
+  SURNAME := 'Obraniak';
   BIRTHDATE := to_date('1970-01-22', 'YYYY-MM-DD');
   PESEL := '70053045678';
-  DOCUMENT_ID := 'asd123456';
+  DOCUMENT_ID := 'asd456';
   CONTACTID := 3;
-  ROLEID := 1;
+  ROLEID := 2;
   -- Modify the code to initialize the variable
-  RECORDINGCOLLECTION := NULL;
+  RECORDINGCOLLECTION := k_recording(t_recording(recordingIdSeq.nextval, 'youtube1.com', 'nagranie 1'),
+  t_recording(recordingIdSeq.nextval, 'youtub2e.com', 'nagranie 2'));
 
   PACKAGE_ADDRECORD.ADDUSER(
     USERID => USERID,
-    NAME => NAME,
+    USERNAME => USERNAME,
     SURNAME => SURNAME,
     BIRTHDATE => BIRTHDATE,
     PESEL => PESEL,
