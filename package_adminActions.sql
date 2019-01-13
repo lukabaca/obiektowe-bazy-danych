@@ -66,12 +66,13 @@ END PACKAGE_ADMINACTIONS;
 /*testowanie dzialania */
 set serveroutput on;
 
+/*zmiana roli uzytkownika */
 DECLARE
   USERID NUMBER;
   ROLEID NUMBER;
 BEGIN
-  USERID := 2;
-  ROLEID := 5;
+  USERID := 12;
+  ROLEID := 1;
 
   PACKAGE_ADMINACTIONS.CHANGEUSERROLE(
     USERID => USERID,
@@ -80,7 +81,7 @@ BEGIN
 --rollback; 
 END;
 
-
+/*zmiana dostepnosci gokartu */
 DECLARE
   KARTID NUMBER;
   KARTAVAILABILITY NUMBER;

@@ -5,6 +5,7 @@ create or replace package package_userActions as
     userNotFoundException exception;
     reservationNotFoundException exception;
     kartNotFoundException exception;
+    wrongNumberOfRidesException exception;
     
     procedure getRecords(recordTypeCur in out kartRecord_type, recordType in integer, recordLimit in integer);
     procedure getReservations(reservationTypeCur in out reservation_type, reservationType in integer, reservationDate in date);
@@ -15,7 +16,7 @@ create or replace package package_userActions as
     
     function isReservationValid(resStartDate in date, resEndDate in date) return boolean;
     function checkKartIds(kartIds kartIdTab) return boolean; 
-    procedure makeReservation(userId in integer, startDate in date, endDate in date, kartIds kartIdTab);
+    procedure makeReservation(userId in integer, startDate in date, numberOfRides in integer, kartIds kartIdTab);
     
 end package_userActions;
 
@@ -260,14 +261,23 @@ PACKAGE BODY package_userActions AS
     return isValid;
   end checkKartIds;
 
-  procedure makeReservation(userId in integer, startDate in date, endDate in date, kartIds kartIdTab) AS
+  procedure makeReservation(userId in integer, startDate in date, numberOfRides in integer, kartIds kartIdTab) AS
    reservationTmpId integer;
+   endDate date;
+   startDateTmp number;
   BEGIN
     if (not PACKAGE_CHECKINGRECORDEXIST.isUserFound(userId)) then
         raise userNotFoundException;
     elsif (not PACKAGE_USERACTIONS.checkKartIds(kartIds)) then
         raise kartNotFoundException;
     end if;
+    if numberOfRides <= 0 or numberOfRides > 5 then
+        raise wrongNumberOfRidesException;
+    end if;
+    
+    select startDate + NUMTODSINTERVAL(numberOfRides * 10, 'minute') into endDate  from dual;
+    dbms_output.put_line('END date: ' || endDate);
+    
     if (isReservationValid(startDate, endDate)) then
         reservationTmpId:= reservationIdSeq.nextval; 
         PACKAGE_ADDRECORD.addReservation(reservationTmpId, userId, startDate, endDate);
@@ -285,6 +295,8 @@ PACKAGE BODY package_userActions AS
         DBMS_OUTPUT.PUT_LINE('Nie znaleziono uzytkownika o podanym ID');
     when kartNotFoundException then
         DBMS_OUTPUT.PUT_LINE('Pojazd o takim id nie istnieje');
+    when wrongNumberOfRidesException then    
+        DBMS_OUTPUT.PUT_LINE('Podano niepoprawna liczbe przejazdow, musi sie ona zawierca miedzy 1 a 5');
   END makeReservation;
     
 END package_userActions;
