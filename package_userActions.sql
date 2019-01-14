@@ -287,7 +287,6 @@ PACKAGE BODY package_userActions AS
     end if;
     
     select startDate + NUMTODSINTERVAL(numberOfRides * 10, 'minute') into endDate  from dual;
-    --dbms_output.put_line('END date: ' || endDate);
     
     if (isReservationValid(startDate, endDate)) then
         reservationTmpId:= reservationIdSeq.nextval; 

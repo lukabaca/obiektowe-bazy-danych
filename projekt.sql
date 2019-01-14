@@ -120,6 +120,7 @@ delete from kart;
 
 /*---------------------------------------------------*/
 
+/*usuwanie sekwencji */
 drop sequence contactIdSeq;
 drop sequence userIdSeq;
 drop sequence reservationIdSeq;
@@ -238,3 +239,4 @@ select id, deref(usr).name, deref(usr).surname, deref(kart).name, averageSpeed,
 to_char(lapDate, 'YYYY-MM-DD'), minute, second, milisecond from lap;
 
 /*---------------------------------------------------*/
+commit;

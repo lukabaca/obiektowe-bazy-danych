@@ -5,6 +5,8 @@ create or replace package package_adminActions as
     userNotFoundException exception;
     roleNotFoundExceptiom exception;
     kartNotFoundException exception;
+    
+    
 end package_adminActions;
 
 CREATE OR REPLACE
@@ -50,8 +52,8 @@ PACKAGE BODY PACKAGE_ADMINACTIONS AS
         else
             kartAvailabiltyName:= 'Niedostêpny';
         end if;
-        DBMS_OUTPUT.PUT_LINE('Zmienio dostepnosc dla gokartu: ' || kartEditedName || ' na dostêpnosc: ' ||
-        kartAvailabiltyName);    
+        --DBMS_OUTPUT.PUT_LINE('Zmienio dostepnosc dla gokartu: ' || kartEditedName || ' na dostêpnosc: ' ||
+        --kartAvailabiltyName);    
     end if;
    EXCEPTION
        when kartNotFoundException then
@@ -60,6 +62,36 @@ PACKAGE BODY PACKAGE_ADMINACTIONS AS
 
 END PACKAGE_ADMINACTIONS;
 
+/*-----------------------------------------------------*/
+/*wyzwalaczae (triggery) */
+create or replace trigger kart_availability_update
+before update on kart for each row
+declare 
+    oldAvailability number;
+    newAvailability number;
+    
+    oldAvailName varchar2(15);
+    newAvailName varchar2(15);
+    kartNameTmp varchar2(30);
+begin
+    kartNameTmp:= :old.name;
+    oldAvailability:= :old.availability;
+    newAvailability:= :new.availability;
+    
+    if oldAvailability = 1 then
+        oldAvailName:= 'Dostêpny';
+    else
+        oldAvailName:= 'Niedostêpny';
+    end if;
+        
+    if newAvailability = 1 then
+        newAvailName:= 'Dostêpny';
+    else
+        newAvailName:= 'Niedostêpny';
+    end if;
+    DBMS_OUTPUT.PUT_LINE('Zmienio dostepnosc dla gokartu: ' || kartNameTmp || ' z: ' || oldAvailName
+    || ' na: ' ||newAvailName);    
+end;
 
 /*-----------------------------------------------------*/
 
@@ -71,7 +103,7 @@ DECLARE
   USERID NUMBER;
   ROLEID NUMBER;
 BEGIN
-  USERID := 12;
+  USERID := 1;
   ROLEID := 1;
 
   PACKAGE_ADMINACTIONS.CHANGEUSERROLE(
@@ -95,3 +127,5 @@ BEGIN
   );
 --rollback; 
 END;
+
+commit;
