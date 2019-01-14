@@ -238,6 +238,7 @@ select * from kart;
 select deref(reservation).id, deref(reservation).startDate,
 deref(kart).name from reservationKart;
 
+
 /*lap */
 select id, deref(usr).name, deref(usr).surname, deref(kart).name, averageSpeed,
 to_char(lapDate, 'YYYY-MM-DD'), minute, second, milisecond from lap;

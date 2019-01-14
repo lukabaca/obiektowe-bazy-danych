@@ -6,6 +6,7 @@ create or replace package package_userActions as
     reservationNotFoundException exception;
     kartNotFoundException exception;
     wrongNumberOfRidesException exception;
+    cancelReservationException exception;
     
     procedure getRecords(recordTypeCur in out kartRecord_type, recordType in integer, recordLimit in integer);
     procedure getReservations(reservationTypeCur in out reservation_type, reservationType in integer, reservationDate in date);
@@ -17,7 +18,7 @@ create or replace package package_userActions as
     function isReservationValid(resStartDate in date, resEndDate in date) return boolean;
     function checkKartIds(kartIds kartIdTab) return boolean; 
     procedure makeReservation(userId in integer, startDate in date, numberOfRides in integer, kartIds kartIdTab);
-    
+    procedure cancelReservation(reservationId in integer, userId in integer);
 end package_userActions;
 
 CREATE OR REPLACE
@@ -308,6 +309,32 @@ PACKAGE BODY package_userActions AS
     when wrongNumberOfRidesException then    
         DBMS_OUTPUT.PUT_LINE('Podano niepoprawna liczbe przejazdow, musi sie ona zawierca miedzy 1 a 5');
   END makeReservation;
+  
+  procedure cancelReservation(reservationId in integer, userId in integer) as
+  usersIdForReservation integer;
+  begin
+     if (not PACKAGE_CHECKINGRECORDEXIST.isUserFound(userId)) then
+        raise userNotFoundException;
+    elsif (not PACKAGE_CHECKINGRECORDEXIST.isReservationFound(reservationId)) then
+        raise reservationNotFoundException;
+    end if;
+    select deref(usr).id into usersIdForReservation from reservation where reservation.id = reservationId;
+    
+    if usersIdForReservation != userId then
+        raise cancelReservationException;
+    end if;
+    
+    delete from reservationKart where deref(reservation).id = reservationId;
+    delete from reservation where reservation.id = reservationId;
+    DBMS_OUTPUT.PUT_LINE('Anulowano rezerwacje');
+    EXCEPTION
+    when userNotFoundException then
+        DBMS_OUTPUT.PUT_LINE('Nie znaleziono uzytkownika o podanym ID');
+    when reservationNotFoundException then
+        DBMS_OUTPUT.PUT_LINE('Nie znaleziono rezerwacji o podanym ID');
+    when cancelReservationException then
+        DBMS_OUTPUT.PUT_LINE('Nie mozna anulowac nie swojej rezerwacji');    
+  end cancelReservation;
     
 END package_userActions;
 
@@ -580,7 +607,7 @@ BEGIN
   STARTDATE := to_date('2019-09-22 14:30:00', 'YYYY-MM-DD HH24:MI:SS');
   NUMBEROFRIDES := 2;
   -- Modify the code to initialize the variable
-  KARTIDS := kartIdTab(3);
+  KARTIDS := kartIdTab(1, 3);
 
   PACKAGE_USERACTIONS.MAKERESERVATION(
     USERID => USERID,
@@ -590,6 +617,20 @@ BEGIN
   );
 END;
 
+/*anulowanie rezerwacji */
+
+DECLARE
+  USERID INTEGER;
+  RESERVATIONID INTEGER;
+BEGIN
+  USERID := 3;
+  RESERVATIONID := 13;
+
+  PACKAGE_USERACTIONS.CANCELRESERVATION(
+    USERID => USERID,
+    RESERVATIONID => RESERVATIONID
+  );
+END;
 
 
 commit;
