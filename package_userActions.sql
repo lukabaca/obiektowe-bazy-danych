@@ -213,14 +213,14 @@ PACKAGE BODY package_userActions AS
   END getKarts;
 
   function isReservationValid(resStartDate in date, resEndDate in date) return boolean AS
-  currentDate date;
-  
-  startDateHour integer;
-  endDateHour integer;
-  startDateMinute integer;
-  endDateMinute integer;
-  
-  reservationsReturned number;
+      currentDate date;
+      
+      startDateHour integer;
+      endDateHour integer;
+      startDateMinute integer;
+      endDateMinute integer;
+      
+      reservationsReturned number;
   BEGIN
     select sysdate into currentDate from dual;
     select extract(hour from cast(resStartDate as timestamp)) into startDateHour from dual; 
@@ -430,6 +430,101 @@ BEGIN
     RESERVATIONTYPE => RESERVATIONTYPE,
     RESERVATIONDATE => RESERVATIONDATE
   );
+END;
+
+/*sprawdzanie kolizji rezerwacji 
+dla rezerwacjie 2019-06-22 12:00 - 14:00*/
+
+/* 1 */
+DECLARE
+  RESSTARTDATE DATE;
+  RESENDDATE DATE;
+  v_Return BOOLEAN;
+BEGIN
+  RESSTARTDATE := to_date('2019-06-22 11:00:00', 'YYYY-MM-DD HH24:MI:SS');
+  RESENDDATE := to_date('2019-06-22 13:20:00', 'YYYY-MM-DD HH24:MI:SS');
+
+  v_Return := PACKAGE_USERACTIONS.ISRESERVATIONVALID(
+    RESSTARTDATE => RESSTARTDATE,
+    RESENDDATE => RESENDDATE
+  );
+
+IF (v_Return) THEN 
+    DBMS_OUTPUT.PUT_LINE('v_Return = ' || 'TRUE');
+  ELSE
+    DBMS_OUTPUT.PUT_LINE('v_Return = ' || 'FALSE');
+  END IF;
+  --:v_Return := v_Return;
+--rollback; 
+END;
+
+/* 2 */
+DECLARE
+  RESSTARTDATE DATE;
+  RESENDDATE DATE;
+  v_Return BOOLEAN;
+BEGIN
+  RESSTARTDATE := to_date('2019-06-22 12:30:00', 'YYYY-MM-DD HH24:MI:SS');
+  RESENDDATE := to_date('2019-06-22 18:20:00', 'YYYY-MM-DD HH24:MI:SS');
+
+  v_Return := PACKAGE_USERACTIONS.ISRESERVATIONVALID(
+    RESSTARTDATE => RESSTARTDATE,
+    RESENDDATE => RESENDDATE
+  );
+
+IF (v_Return) THEN 
+    DBMS_OUTPUT.PUT_LINE('v_Return = ' || 'TRUE');
+  ELSE
+    DBMS_OUTPUT.PUT_LINE('v_Return = ' || 'FALSE');
+  END IF;
+  --:v_Return := v_Return;
+--rollback; 
+END;
+
+/* 3 */
+DECLARE
+  RESSTARTDATE DATE;
+  RESENDDATE DATE;
+  v_Return BOOLEAN;
+BEGIN
+  RESSTARTDATE := to_date('2019-06-22 12:30:00', 'YYYY-MM-DD HH24:MI:SS');
+  RESENDDATE := to_date('2019-06-22 13:20:00', 'YYYY-MM-DD HH24:MI:SS');
+
+  v_Return := PACKAGE_USERACTIONS.ISRESERVATIONVALID(
+    RESSTARTDATE => RESSTARTDATE,
+    RESENDDATE => RESENDDATE
+  );
+
+IF (v_Return) THEN 
+    DBMS_OUTPUT.PUT_LINE('v_Return = ' || 'TRUE');
+  ELSE
+    DBMS_OUTPUT.PUT_LINE('v_Return = ' || 'FALSE');
+  END IF;
+  --:v_Return := v_Return;
+--rollback; 
+END;
+
+/* 4 */
+DECLARE
+  RESSTARTDATE DATE;
+  RESENDDATE DATE;
+  v_Return BOOLEAN;
+BEGIN
+  RESSTARTDATE := to_date('2019-06-22 11:30:00', 'YYYY-MM-DD HH24:MI:SS');
+  RESENDDATE := to_date('2019-06-22 18:20:00', 'YYYY-MM-DD HH24:MI:SS');
+
+  v_Return := PACKAGE_USERACTIONS.ISRESERVATIONVALID(
+    RESSTARTDATE => RESSTARTDATE,
+    RESENDDATE => RESENDDATE
+  );
+
+IF (v_Return) THEN 
+    DBMS_OUTPUT.PUT_LINE('v_Return = ' || 'TRUE');
+  ELSE
+    DBMS_OUTPUT.PUT_LINE('v_Return = ' || 'FALSE');
+  END IF;
+  --:v_Return := v_Return;
+--rollback; 
 END;
 
 commit;

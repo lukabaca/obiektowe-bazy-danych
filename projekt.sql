@@ -183,6 +183,10 @@ insert into reservation select reservationIdSeq.nextval, ref(usrRef), to_date('2
 to_date('2019-02-22 19:30:00', 'YY-MM-DD HH24:MI:SS')
 from usr usrRef where usrRef.id = 1;
 
+insert into reservation select reservationIdSeq.nextval, ref(usrRef), to_date('2019-06-22 12:00:00', 'YYYY-MM-DD HH24:MI:SS'), 
+to_date('2019-06-22 14:00:00', 'YY-MM-DD HH24:MI:SS')
+from usr usrRef where usrRef.id = 1;
+
 /*wstawianie rekordow do tabeli kart */
 insert into kart values(kartIdSeq.nextval, 1, 25, 'gt5', 'silnik m52b20');
 insert into kart values(kartIdSeq.nextval, 0, 40, 'gt6', 'silnik m52b28');
