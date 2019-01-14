@@ -6,7 +6,6 @@ create or replace package package_adminActions as
     roleNotFoundExceptiom exception;
     kartNotFoundException exception;
     
-    
 end package_adminActions;
 
 CREATE OR REPLACE
@@ -38,22 +37,11 @@ PACKAGE BODY PACKAGE_ADMINACTIONS AS
   END changeUserRole;
 
   procedure changeKartAvailability(kartId in integer, kartAvailability in number) AS
-  kartEditedName varchar2(30);
-  
-  kartAvailabiltyName varchar2(20);
   BEGIN
     if (not PACKAGE_CHECKINGRECORDEXIST.isKartFound(kartId)) then
         raise kartNotFoundException;
     else
-        update kart set availability = kartAvailability where kart.id = kartId;
-        select k.name into kartEditedName from kart k where k.id = kartId;
-        if kartAvailability = 1 then
-            kartAvailabiltyName:= 'Dostêpny';
-        else
-            kartAvailabiltyName:= 'Niedostêpny';
-        end if;
-        --DBMS_OUTPUT.PUT_LINE('Zmienio dostepnosc dla gokartu: ' || kartEditedName || ' na dostêpnosc: ' ||
-        --kartAvailabiltyName);    
+        update kart set availability = kartAvailability where kart.id = kartId; 
     end if;
    EXCEPTION
        when kartNotFoundException then
@@ -64,8 +52,12 @@ END PACKAGE_ADMINACTIONS;
 
 /*-----------------------------------------------------*/
 /*wyzwalaczae (triggery) */
+
+drop trigger kart_availability_update;
+
+/*trigger wywolywany po zmianie dostepnosci gokartu */
 create or replace trigger kart_availability_update
-before update on kart for each row
+after update on kart for each row
 declare 
     oldAvailability number;
     newAvailability number;
@@ -104,7 +96,7 @@ DECLARE
   ROLEID NUMBER;
 BEGIN
   USERID := 1;
-  ROLEID := 1;
+  ROLEID := 2;
 
   PACKAGE_ADMINACTIONS.CHANGEUSERROLE(
     USERID => USERID,
@@ -119,7 +111,7 @@ DECLARE
   KARTAVAILABILITY NUMBER;
 BEGIN
   KARTID := 1;
-  KARTAVAILABILITY := 0;
+  KARTAVAILABILITY := 1;
 
   PACKAGE_ADMINACTIONS.CHANGEKARTAVAILABILITY(
     KARTID => KARTID,

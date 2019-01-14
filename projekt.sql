@@ -240,3 +240,5 @@ to_char(lapDate, 'YYYY-MM-DD'), minute, second, milisecond from lap;
 
 /*---------------------------------------------------*/
 commit;
+
+SELECT imie, nazwisko, o.adres.ulica, o.adres.numer_domu, o.adres.miejscowosc  FROM osoba o;
