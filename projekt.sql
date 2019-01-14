@@ -229,7 +229,7 @@ select * from usr order by id;
 
 /*reservation */
 select id, to_char(startDate, 'YYYY-MM-DD HH24:MI:SS'), to_char(endDate, 'YYYY-MM-DD HH24:MI:SS'), deref(usr).name, deref(usr).surname from reservation
-order by id asc;
+order by reservation.startDate desc;
 
 /*kart */
 select * from kart;

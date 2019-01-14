@@ -527,5 +527,70 @@ IF (v_Return) THEN
 --rollback; 
 END;
 
+/*---------------------------------------------*/
+
+DECLARE
+  KARTIDS LUKA.KARTIDTAB;
+  v_Return BOOLEAN;
+BEGIN
+  KARTIDS := kartIdTab(1, 3);
+
+  v_Return := PACKAGE_USERACTIONS.checkKartIds(
+   KARTIDS => KARTIDS
+  );
+  
+IF (v_Return) THEN 
+    DBMS_OUTPUT.PUT_LINE('v_Return = ' || 'TRUE');
+  ELSE
+    DBMS_OUTPUT.PUT_LINE('v_Return = ' || 'FALSE');
+  END IF;
+
+  --:v_Return := v_Return;
+--rollback; 
+END;
+
+DECLARE
+  USERID NUMBER;
+  STARTDATE DATE;
+  NUMBEROFRIDES NUMBER;
+  KARTIDS LUKA.KARTIDTAB;
+BEGIN
+  USERID := 1;
+  STARTDATE := to_date('2019-09-22 12:30:00', 'YYYY-MM-DD HH24:MI:SS');
+  NUMBEROFRIDES := 4;
+  -- Modify the code to initialize the variable
+  KARTIDS := kartIdTab(1, 3);
+
+  PACKAGE_USERACTIONS.MAKERESERVATION(
+    USERID => USERID,
+    STARTDATE => STARTDATE,
+    NUMBEROFRIDES => NUMBEROFRIDES,
+    KARTIDS => KARTIDS
+  );
+--rollback; 
+END;
+
+DECLARE
+  USERID NUMBER;
+  STARTDATE DATE;
+  NUMBEROFRIDES NUMBER;
+  KARTIDS LUKA.KARTIDTAB;
+BEGIN
+  USERID := 3;
+  STARTDATE := to_date('2019-09-22 14:30:00', 'YYYY-MM-DD HH24:MI:SS');
+  NUMBEROFRIDES := 2;
+  -- Modify the code to initialize the variable
+  KARTIDS := kartIdTab(3);
+
+  PACKAGE_USERACTIONS.MAKERESERVATION(
+    USERID => USERID,
+    STARTDATE => STARTDATE,
+    NUMBEROFRIDES => NUMBEROFRIDES,
+    KARTIDS => KARTIDS
+  );
+END;
+
+
+
 commit;
 

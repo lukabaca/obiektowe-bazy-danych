@@ -42,7 +42,7 @@ PROCEDURE addContact(contactId in integer, telephoneNumber in varchar2, email in
     else
         insert into contact cnt values(contactIdSeq.nextval, telephoneNumber, email) returning ref(cnt) into contactTmp;
         insert into usr select userId, userName, surname, birthDate, 
-        pesel, document_id, contactTmp, ref(rolRef), recordingCollection from role rolRef, contact contactRef 
+        pesel, document_id, contactTmp, ref(rolRef), recordingCollection from role rolRef
         where rolRef.id = roleId;
         DBMS_OUTPUT.PUT_LINE('Poprawnie dodano uzytkownika');
     end if;
