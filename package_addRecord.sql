@@ -9,7 +9,7 @@ create or replace package package_addRecord as
     PROCEDURE addContact(contactId in integer, telephoneNumber in varchar2, email in varchar2);
     PROCEDURE addRole(roleId in integer, name in varchar2);
     PROCEDURE addUser(userId in integer, userName in varchar2, surname in varchar2, birthDate in date, pesel in varchar2,
-    document_id in varchar2, contactId in integer, roleId in integer, recordingCollection in k_recording);
+    document_id in varchar2, telephoneNumber varchar2, email varchar2, roleId in integer, recordingCollection in k_recording);
     PROCEDURE addReservation(reservationId in integer, userId in integer, startDate in date, endDate in date);
     PROCEDURE addKart(kartId in integer, availability number, prize in number, name in varchar2, descripiton in varchar2);
     PROCEDURE addReservationKart(reservationId in integer, kartId in integer);
@@ -34,21 +34,19 @@ PROCEDURE addContact(contactId in integer, telephoneNumber in varchar2, email in
   END addRole;
 
  PROCEDURE addUser(userId in integer, userName in varchar2, surname in varchar2, birthDate in date, pesel in varchar2,
-    document_id in varchar2, contactId in integer, roleId in integer, recordingCollection in k_recording) AS
+    document_id in varchar2, telephoneNumber varchar2, email varchar2, roleId in integer, recordingCollection in k_recording) AS
+    contactTmp ref t_contact;
   BEGIN
-    if (not PACKAGE_CHECKINGRECORDEXIST.isContactFound(contactId)) then
-        raise contactNotFoundException;
-    elsif (not PACKAGE_CHECKINGRECORDEXIST.isRoleFound(roleId)) then
+    if (not PACKAGE_CHECKINGRECORDEXIST.isRoleFound(roleId)) then
         raise roleNotFoundException;
     else
+        insert into contact cnt values(contactIdSeq.nextval, telephoneNumber, email) returning ref(cnt) into contactTmp;
         insert into usr select userId, userName, surname, birthDate, 
-        pesel, document_id, ref(contactRef), ref(rolRef), recordingCollection from role rolRef, contact contactRef 
-        where rolRef.id = roleId and contactRef.id = contactId;
+        pesel, document_id, contactTmp, ref(rolRef), recordingCollection from role rolRef
+        where rolRef.id = roleId;
         DBMS_OUTPUT.PUT_LINE('Poprawnie dodano uzytkownika');
     end if;
     EXCEPTION
-    when contactNotFoundException then
-        DBMS_OUTPUT.PUT_LINE('Nie znaleziono danych kontakowych o podanym ID');
     when roleNotFoundException then
         DBMS_OUTPUT.PUT_LINE('Nie znaleziono roli o podanym ID');
   END addUser;
@@ -194,7 +192,8 @@ DECLARE
   BIRTHDATE DATE;
   PESEL VARCHAR2(200);
   DOCUMENT_ID VARCHAR2(200);
-  CONTACTID NUMBER;
+  TELEPHONENUMBER VARCHAR2(200);
+  EMAIL VARCHAR2(200);
   ROLEID NUMBER;
   RECORDINGCOLLECTION LUKA.K_RECORDING;
 BEGIN
@@ -204,7 +203,8 @@ BEGIN
   BIRTHDATE := to_date('1970-01-22', 'YYYY-MM-DD');
   PESEL := '70053045678';
   DOCUMENT_ID := 'asd456';
-  CONTACTID := 3;
+  TELEPHONENUMBER := '333-444-555';
+  EMAIL := 'adam@onet.pl';
   ROLEID := 2;
   -- Modify the code to initialize the variable
   RECORDINGCOLLECTION := k_recording(t_recording(recordingIdSeq.nextval, 'youtube1.com', 'nagranie 1'),
@@ -217,7 +217,8 @@ BEGIN
     BIRTHDATE => BIRTHDATE,
     PESEL => PESEL,
     DOCUMENT_ID => DOCUMENT_ID,
-    CONTACTID => CONTACTID,
+    TELEPHONENUMBER => TELEPHONENUMBER,
+    EMAIL => EMAIL,
     ROLEID => ROLEID,
     RECORDINGCOLLECTION => RECORDINGCOLLECTION
   );
@@ -294,3 +295,5 @@ BEGIN
   );
 --rollback; 
 END;
+
+commit;
