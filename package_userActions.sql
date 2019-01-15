@@ -50,20 +50,21 @@ PACKAGE BODY package_userActions AS
     lapMinute lap.minute%type;
     lapSecond lap.second%type;
     lapMiliSecond lap.milisecond%type;
+    lapDateTmp lap.lapDate%type;
   BEGIN
     if recordType = 1 then
-        open recordTypeCur for select id, deref(usr).name, minute, second, milisecond from lap 
+        open recordTypeCur for select id, deref(usr).name, minute, second, milisecond, lapDate from lap 
         where rownum <= recordLimit order by minute asc, second asc, milisecond asc;
         
     elsif recordType = 2 then
         select sysdate into currentDate from dual;
-        open recordTypeCur for select id, deref(usr).name, minute, second, milisecond from lap 
+        open recordTypeCur for select id, deref(usr).name, minute, second, milisecond, lapDate from lap 
         where rownum <= recordLimit and
         ((select months_between(lap.lapDate, currentDate) from lap)) = 1 order by minute asc, second asc, milisecond asc;
         
     elsif recordType = 3 then
         select sysdate into currentDate from dual;
-        open recordTypeCur for select id, deref(usr).name, minute, second, milisecond from lap 
+        open recordTypeCur for select id, deref(usr).name, minute, second, milisecond, lapDate from lap 
         where rownum <= recordLimit and
         ( ((select abs(currentDate - lap.lapDate) from lap)) >= 0 and ((select abs(currentDate - lap.lapDate) from lap)) <= 7 ) order by minute asc, second asc, milisecond asc;
         
@@ -73,9 +74,10 @@ PACKAGE BODY package_userActions AS
     end if;
     
     loop
-        fetch recordTypeCur into lapIdRes, userName, lapMinute, lapSecond, lapMilisecond;
+        fetch recordTypeCur into lapIdRes, userName, lapMinute, lapSecond, lapMilisecond, lapDateTmp;
             exit when recordTypeCur%notfound;
-            DBMS_OUTPUT.PUT_LINE('ID okrazena: ' || lapIdRes || 'Uzytkownik: ' || userName || 'Czas: ' || lapMinute || ':' || lapSecond || ':' || lapMilisecond);
+            DBMS_OUTPUT.PUT_LINE('ID okrazena: ' || lapIdRes || ' Uzytkownik: ' || userName || 'Czas: ' || lapMinute || ':' || lapSecond || ':' 
+            || lapMilisecond || ' ' || lapDateTmp);
     end loop;
     close recordTypeCur;
   END getRecords;
@@ -386,7 +388,7 @@ END;
 DECLARE
   USERID NUMBER;
 BEGIN
-  USERID := NULL;
+  USERID := 5;
 
   PACKAGE_USERACTIONS.GETUSERLAPS(
     USERID => USERID
@@ -422,9 +424,6 @@ BEGIN
     RECORDLIMIT => RECORDLIMIT
   );
  
---DBMS_OUTPUT.PUT_LINE('RECORDTYPECUR = ' || RECORDTYPECUR);
-  --:RECORDTYPECUR := RECORDTYPECUR; --<-- Cursor
---rollback; 
 END;
 
 /*pobieranie rezerwacji dla podanej daty*/

@@ -203,23 +203,31 @@ where reserRef.id = 1 and kartRef.id = 3;
 
 /*wstawianie rekordów do tabeli lap */
 insert into lap select lapIdSeq.nextval, ref(usrRef), ref(kartRef),
-44.5, to_date('2019-01-30'), 1, 20, 55 from usr usrRef, kart kartRef
+44.5, to_date('2018-01-30'), 1, 20, 55 from usr usrRef, kart kartRef
 where usrRef.id = 1 and kartRef.id = 1;
 
 insert into lap select lapIdSeq.nextval, ref(usrRef), ref(kartRef),
-55, to_date('2019-01-12'), 0, 55, 24 from usr usrRef, kart kartRef
+55, to_date('2019-02-12'), 0, 55, 24 from usr usrRef, kart kartRef
 where usrRef.id = 1 and kartRef.id = 3;
 
 insert into lap select lapIdSeq.nextval, ref(usrRef), ref(kartRef),
-44.5, to_date('2019-01-30'), 1, 34, 55 from usr usrRef, kart kartRef
+44.5, to_date('2019-01-28'), 1, 34, 55 from usr usrRef, kart kartRef
 where usrRef.id = 1 and kartRef.id = 1;
 
 insert into lap select lapIdSeq.nextval, ref(usrRef), ref(kartRef),
-44.5, to_date('2019-01-30'), 0, 20, 55 from usr usrRef, kart kartRef
+44.5, to_date('2019-05-25'), 0, 20, 55 from usr usrRef, kart kartRef
 where usrRef.id = 1 and kartRef.id = 1;
 
 insert into lap select lapIdSeq.nextval, ref(usrRef), ref(kartRef),
-44.5, to_date('2019-01-30'), 2, 33, 55 from usr usrRef, kart kartRef
+44.5, to_date('2019-01-12'), 2, 33, 55 from usr usrRef, kart kartRef
+where usrRef.id = 1 and kartRef.id = 1;
+
+insert into lap select lapIdSeq.nextval, ref(usrRef), ref(kartRef),
+44.5, to_date('2019-01-13'), 4, 33, 55 from usr usrRef, kart kartRef
+where usrRef.id = 1 and kartRef.id = 1;
+
+insert into lap select lapIdSeq.nextval, ref(usrRef), ref(kartRef),
+22, to_date('2019-01-01'), 1, 25, 55 from usr usrRef, kart kartRef
 where usrRef.id = 1 and kartRef.id = 1;
 /*---------------------------------------------------*/
 
@@ -252,7 +260,8 @@ deref(kart).name from reservationKart;
 
 /*lap */
 select id, deref(usr).name, deref(usr).surname, deref(kart).name, averageSpeed,
-to_char(lapDate, 'YYYY-MM-DD'), minute, second, milisecond from lap;
+to_char(lapDate, 'YYYY-MM-DD'), minute, second, milisecond from lap
+order by minute, second, milisecond;
 
 /*---------------------------------------------------*/
 commit;
