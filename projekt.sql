@@ -266,3 +266,9 @@ order by minute, second, milisecond;
 /*---------------------------------------------------*/
 commit;
 
+select * from lap
+where lap.lapDate between (select sysdate from dual) and (select sysdate + interval '20' day from dual);
+
+select * from lap where lap.lapDate = (select lap.lapDate + 20 from dual);
+
+select sysdate - interval '1' month from dual;

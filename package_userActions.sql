@@ -40,7 +40,7 @@ end package_userActions;
 
 CREATE OR REPLACE
 PACKAGE BODY package_userActions AS
-    /* recordType przyjmuje nastepujace wartosci: 1 - rekordy wszech czasów, 2 - rekordy obecne i z zeszlego miesiaca, 3 - rekordy z tygodnia wstecz od podanej daty 
+    /* recordType przyjmuje nastepujace wartosci: 1 - rekordy wszech czasów, 2 - rekordy z miesiaca wstecz od podanej daty, 3 - rekordy z tygodnia wstecz od podanej daty 
     recordLimit okresla ile wynikow maksymalnie chcemy otrzymac*/
   procedure getRecords(recordTypeCur in out kartRecord_type, recordType in integer, recordLimit in integer) as
     currentDate date;
@@ -51,6 +51,9 @@ PACKAGE BODY package_userActions AS
     lapSecond lap.second%type;
     lapMiliSecond lap.milisecond%type;
     lapDateTmp lap.lapDate%type;
+    
+    dateWeekBefore date;
+    dateMonthBefore date;
   BEGIN
     if recordType = 1 then
         open recordTypeCur for select id, deref(usr).name, minute, second, milisecond, lapDate from lap 
@@ -58,15 +61,17 @@ PACKAGE BODY package_userActions AS
         
     elsif recordType = 2 then
         select sysdate into currentDate from dual;
+        select sysdate - interval '1' month into dateMonthBefore from dual;
         open recordTypeCur for select id, deref(usr).name, minute, second, milisecond, lapDate from lap 
         where rownum <= recordLimit and
-        ((select months_between(lap.lapDate, currentDate) from lap)) = 1 order by minute asc, second asc, milisecond asc;
+        lapDate between dateMonthBefore and currentDate order by minute asc, second asc, milisecond asc;
         
     elsif recordType = 3 then
         select sysdate into currentDate from dual;
+        select sysdate - interval '7' day into dateWeekBefore from dual;
         open recordTypeCur for select id, deref(usr).name, minute, second, milisecond, lapDate from lap 
         where rownum <= recordLimit and
-        ( ((select abs(currentDate - lap.lapDate) from lap)) >= 0 and ((select abs(currentDate - lap.lapDate) from lap)) <= 7 ) order by minute asc, second asc, milisecond asc;
+        lapDate between dateWeekBefore and currentDate order by minute asc, second asc, milisecond asc;
         
     else
        open recordTypeCur for select id, deref(usr).name, minute, second, milisecond from lap 
@@ -363,7 +368,7 @@ END package_userActions;
 
 /*-----------------------------------------------------*/
 
-/*test dzialania getRecords */
+/*test dzialania */
 set serveroutput on;
 
 /* pobieranie listy dostepnych gokartow */
@@ -415,7 +420,7 @@ DECLARE
   RECORDLIMIT NUMBER;
 BEGIN
   RECORDTYPECUR := RECORDTYPECUR;
-  RECORDTYPE := 1;
+  RECORDTYPE := 3;
   RECORDLIMIT := 10;
 
   PACKAGE_USERACTIONS.GETRECORDS(
