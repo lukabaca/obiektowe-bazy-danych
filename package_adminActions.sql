@@ -1,5 +1,8 @@
+/*pakiet dla akcji uzytkownika z rola administratora */
 create or replace package package_adminActions as
+    /*zmiana roli wybranego uzytkownika */
     procedure changeUserRole(userId in integer, roleId in integer);
+    /*zmiana dostepnosci gokartu */
     procedure changeKartAvailability(kartId in integer, kartAvailability in number); 
     
     userNotFoundException exception;
@@ -96,7 +99,7 @@ DECLARE
   ROLEID NUMBER;
 BEGIN
   USERID := 1;
-  ROLEID := 2;
+  ROLEID := 1;
 
   PACKAGE_ADMINACTIONS.CHANGEUSERROLE(
     USERID => USERID,
