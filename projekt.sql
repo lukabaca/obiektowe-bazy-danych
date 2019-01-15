@@ -210,6 +210,17 @@ insert into lap select lapIdSeq.nextval, ref(usrRef), ref(kartRef),
 55, to_date('2019-01-12'), 0, 55, 24 from usr usrRef, kart kartRef
 where usrRef.id = 1 and kartRef.id = 3;
 
+insert into lap select lapIdSeq.nextval, ref(usrRef), ref(kartRef),
+44.5, to_date('2019-01-30'), 1, 34, 55 from usr usrRef, kart kartRef
+where usrRef.id = 1 and kartRef.id = 1;
+
+insert into lap select lapIdSeq.nextval, ref(usrRef), ref(kartRef),
+44.5, to_date('2019-01-30'), 0, 20, 55 from usr usrRef, kart kartRef
+where usrRef.id = 1 and kartRef.id = 1;
+
+insert into lap select lapIdSeq.nextval, ref(usrRef), ref(kartRef),
+44.5, to_date('2019-01-30'), 2, 33, 55 from usr usrRef, kart kartRef
+where usrRef.id = 1 and kartRef.id = 1;
 /*---------------------------------------------------*/
 
 /*selecty */
@@ -246,4 +257,3 @@ to_char(lapDate, 'YYYY-MM-DD'), minute, second, milisecond from lap;
 /*---------------------------------------------------*/
 commit;
 
-SELECT imie, nazwisko, o.adres.ulica, o.adres.numer_domu, o.adres.miejscowosc  FROM osoba o;

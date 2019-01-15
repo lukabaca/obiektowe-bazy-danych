@@ -1,18 +1,32 @@
+/*pakiet sluzacy do dodawania rekordow */
 create or replace package package_addRecord as
 
+    /*wyjatki */
+    /*nie znaleziono kontaktu */
     contactNotFoundException exception;
+    /*nie znaleziono roli */
     roleNotFoundException exception;
+    /*nie znaleziono uzytkownika */
     userNotFoundException exception;
+    /*nie znaleziono rezerwacji */
     reservationNotFoundException exception;
+    /*nie znaleziono gokartu */
     kartNotFoundException exception;
 
+    /*dodawanie danych kontaktowych */
     PROCEDURE addContact(contactId in integer, telephoneNumber in varchar2, email in varchar2);
+    /*dodawanei roli */
     PROCEDURE addRole(roleId in integer, name in varchar2);
+    /*dodawanie uzytkownika */
     PROCEDURE addUser(userId in integer, userName in varchar2, surname in varchar2, birthDate in date, pesel in varchar2,
     document_id in varchar2, telephoneNumber varchar2, email varchar2, roleId in integer, recordingCollection in k_recording);
+    /*dodawanie rezerwacjie */
     PROCEDURE addReservation(reservationId in integer, userId in integer, startDate in date, endDate in date);
+    /*dodawanie gokartu */
     PROCEDURE addKart(kartId in integer, availability number, prize in number, name in varchar2, descripiton in varchar2);
+    /*dodowanie gokartu i rezerwacji do tabeli posredniczacej */
     PROCEDURE addReservationKart(reservationId in integer, kartId in integer);
+    /*dodawanie okraeznia */
     PROCEDURE addLap(lapId in integer, userId in integer, kartId in integer, averageSpeed in number, lapDate in date,
     lapMinute in integer, lapSecond in integer, lapMilisecond in integer);
 

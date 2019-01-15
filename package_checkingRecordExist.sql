@@ -1,10 +1,17 @@
+/*pakiet pomocniczy, sprawdzajacy czy w danej tabeli istnieje rekord o podanym ID */
 create or replace package package_CheckingRecordExist as
 
+    /*czy istnieje kontakt o podanym ID */
     FUNCTION isContactFound(contactId in integer) RETURN BOOLEAN;
+    /*czy istnieje uzytkownik po podanym ID */
     FUNCTION isUserFound(userId in integer) RETURN BOOLEAN;
+    /*czy istnieje rola o podanym ID */
     FUNCTION isRoleFound(roleId in integer)  RETURN BOOLEAN;
+    /* czy istnieje rezerwacje o podanym ID */
     FUNCTION isReservationFound(reservationId in integer) RETURN BOOLEAN;
+    /*czy istnieje gokart o podanym ID */
     FUNCTION isKartFound(kartId in integer) RETURN BOOLEAN;
+    /*czy istnieje okrazenie o podanym ID */
     FUNCTION isLapFound(lapId in integer) RETURN BOOLEAN;
     
 end package_CheckingRecordExist;
