@@ -1,29 +1,47 @@
+/* pakiet dla akcji dokonywanych przez uzytkownika toru */
 create or replace package package_userActions as
     type kartRecord_type is ref cursor;
     type reservation_type is ref cursor;
     
+    /*wyjatki */
+    /*nie znaleziono uzytkownika */
     userNotFoundException exception;
+    /*nie znaleziono rezerwacji */
     reservationNotFoundException exception;
+    /*nie znaleziono gokartu */
     kartNotFoundException exception;
+    /*niepoprawna liczba pojazdow (gdy liczba pojazdow < 0 lub > 5 */
     wrongNumberOfRidesException exception;
+    /*gdy nastepuje proba usuniecia nie swojej rezerwacji */
     cancelReservationException exception;
     
+    /*pobranie rekordów toru */
     procedure getRecords(recordTypeCur in out kartRecord_type, recordType in integer, recordLimit in integer);
+    /*pobieranie rezerwacjie w sytemie */
     procedure getReservations(reservationTypeCur in out reservation_type, reservationType in integer, reservationDate in date);
+    /*pobranie rezerwacji danego uzytkownika */
     procedure getUserReservations(userId in integer);
+    /*pobranie okrazen danego uzytkownika */
     procedure getUserLaps(userId in integer);
+    /*pobranie listy gokartow z danej rezerwacji */
     procedure getKartsInReservation(reservationId in integer);
+    /*pobranie listy dostepnych gokartow */
     procedure getKarts;
     
+    /*sprawdzanie kolizji rezerwacji */
     function isReservationValid(resStartDate in date, resEndDate in date) return boolean;
+    /*sprawdzanie czy podane ID gokartow sa zgodne z wystepujacymi dostepnie gokartami w ofercie */
     function checkKartIds(kartIds kartIdTab) return boolean; 
+    /*dokonywanie rezerwacji */
     procedure makeReservation(userId in integer, startDate in date, numberOfRides in integer, kartIds kartIdTab);
+    /*anulowanie danej rezerwacji */
     procedure cancelReservation(reservationId in integer, userId in integer);
 end package_userActions;
 
 CREATE OR REPLACE
 PACKAGE BODY package_userActions AS
-    /* recordType przyjmuje nastepujace wartosci: 1 - rekordy wszech czasów, 2 - rekordy obecne i z zeszlego miesiaca, 3 - rekordy z tygodnia wstecz od podanej daty */
+    /* recordType przyjmuje nastepujace wartosci: 1 - rekordy wszech czasów, 2 - rekordy obecne i z zeszlego miesiaca, 3 - rekordy z tygodnia wstecz od podanej daty 
+    recordLimit okresla ile wynikow maksymalnie chcemy otrzymac*/
   procedure getRecords(recordTypeCur in out kartRecord_type, recordType in integer, recordLimit in integer) as
     currentDate date;
 
@@ -62,7 +80,7 @@ PACKAGE BODY package_userActions AS
     close recordTypeCur;
   END getRecords;
 
-    /* reservationType przyjmuje nastepujace wartosci: 1 - rezerwacje z dnia, 2 - rezerwacje z tygodnia, 3 - rezerwacje z miesiaca */
+    /* reservationType przyjmuje nastepujace wartosci: 1 - rezerwacje z dnia, 2 - rezerwacje do 1 tygodnia do przodu od podanej daty, 3 - rezerwacje z miesiaca */
   procedure getReservations(reservationTypeCur in out reservation_type, reservationType in integer, reservationDate in date) AS
     reservationDateDay integer;
     reservationDateMonth integer;
@@ -227,8 +245,11 @@ PACKAGE BODY package_userActions AS
     select extract(hour from cast(resStartDate as timestamp)) into startDateHour from dual; 
     select extract(hour from cast(resEndDate as timestamp)) into endDateHour from dual;
     
+    /*jesli poczatkowa data rezerwacjie jest wczesniejsza niz obecny czas,
+    unikanie dokonywania rezerwacji wstecz */
     if resStartDate < currentDate then
         return false;
+    /*sprwadzenie czy godziny rezerwacji sa zawarte w godzinach czynnosci toru */    
     elsif startDateHour < 12 or endDateHour >= 20 then
         return false;
     else
@@ -286,9 +307,9 @@ PACKAGE BODY package_userActions AS
     if numberOfRides <= 0 or numberOfRides > 5 then
         raise wrongNumberOfRidesException;
     end if;
-    
+    /*koncowa data rezerwacjie jest obliczana na podstawie poczatkowej daty + ilosc przejadzwo * czas przejazdow */
     select startDate + NUMTODSINTERVAL(numberOfRides * 10, 'minute') into endDate  from dual;
-    
+    /*sprawdzanie kolizji rezerwacji */
     if (isReservationValid(startDate, endDate)) then
         reservationTmpId:= reservationIdSeq.nextval; 
         PACKAGE_ADDRECORD.addReservation(reservationTmpId, userId, startDate, endDate);
@@ -319,7 +340,7 @@ PACKAGE BODY package_userActions AS
         raise reservationNotFoundException;
     end if;
     select deref(usr).id into usersIdForReservation from reservation where reservation.id = reservationId;
-    
+    /*sprawdzenie czy podana rezerwacji nalezy do uzytkownika, ktory chce ja anulowac */
     if usersIdForReservation != userId then
         raise cancelReservationException;
     end if;
