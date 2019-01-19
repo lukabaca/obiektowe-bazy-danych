@@ -6,23 +6,23 @@ create or replace type t_contact as object (
     telephoneNumber varchar2(20),
     email varchar2(30)
 );
-
+/
 /*typ reprezentujacy role */
 create or replace type t_role as object (
     id integer,
     name varchar2(20)
 );
-
+/
 /*typ reprezentujacy nagranie */
 create or replace type t_recording as object (
     id integer,
     recordingLink varchar2(255),
     title varchar2(30)
 );
-
+/
 /*kolekcja nagrañ */
 create type k_recording as table of t_recording;
-
+/
 /* typ reprezentujacy uzytkownika */
 create or replace type t_user as object (
     id integer,
@@ -35,7 +35,7 @@ create or replace type t_user as object (
     role ref t_role,
     recordings k_recording
 );
-
+/
 /*typ reprezentujacy rezerwacje */
 create or replace type t_reservation as object (
     id integer,
@@ -43,7 +43,7 @@ create or replace type t_reservation as object (
     startDate date,
     endDate date
 );
-
+/
 /*typ reprezentujacy gokart */
 create or replace type t_kart as object (
     id integer,
@@ -52,13 +52,13 @@ create or replace type t_kart as object (
     name varchar2(40),
     description varchar2(300)
 );
-
+/
 /*typ reprezentujacy poœredniczenie zawierajace referencje gokartu i rezerwacji */
 create or replace type t_reservation_kart as object (
     reservation REF t_reservation,
     kart REF t_kart
 );
-
+/
 /*typ reprezentujacy okrazenie */
 create or replace type t_lap as object (
     id integer,
@@ -70,10 +70,10 @@ create or replace type t_lap as object (
     second integer,
     milisecond integer
 );
-
+/
 /*typ przechowujacy tablice id gokartów */
 create type kartIdTab is varray (10) of integer;
-
+/
 /*chwilowe usuwanie typów */
 drop type t_contact force;
 drop type t_role force;
@@ -91,14 +91,32 @@ drop type kartIdTab force;
 /*---------------------------------------------------*/
 
 /*tworzenie tabel na podstawie typów obiektowych */
-create table usr of t_user
-nested table recordings store as recording;
-create table contact of t_contact;
-create table role of t_role;
-create table reservation of t_reservation;
+create table usr of t_user(
+primary key (id)
+) nested table recordings store as recording;
+/
+create table contact of t_contact(
+    primary key (id)
+);
+/
+create table role of t_role(
+    primary key (id)
+);
+/
+create table reservation of t_reservation(
+    primary key (id)
+);
+/
 create table reservationKart of t_reservation_kart;
-create table kart of t_kart;
-create table lap of t_lap;
+/
+create table kart of t_kart(
+    primary key (id)
+);
+/
+create table lap of t_lap(
+    primary key (id)
+);
+/
 
 /*usuwanie tabel */
 drop table usr;

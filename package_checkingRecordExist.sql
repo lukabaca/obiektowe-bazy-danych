@@ -15,7 +15,7 @@ create or replace package package_CheckingRecordExist as
     FUNCTION isLapFound(lapId in integer) RETURN BOOLEAN;
     
 end package_CheckingRecordExist;
-
+/
 CREATE OR REPLACE
 PACKAGE BODY PACKAGE_CHECKINGRECORDEXIST AS
 

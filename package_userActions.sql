@@ -37,7 +37,7 @@ create or replace package package_userActions as
     /*anulowanie danej rezerwacji */
     procedure cancelReservation(reservationId in integer, userId in integer);
 end package_userActions;
-
+/
 CREATE OR REPLACE
 PACKAGE BODY package_userActions AS
     /* recordType przyjmuje nastepujace wartosci: 1 - rekordy wszech czasów, 2 - rekordy z miesiaca wstecz od podanej daty, 3 - rekordy z tygodnia wstecz od podanej daty 
@@ -415,7 +415,8 @@ END;
 
 /* pobieranie rekordow toru */
 DECLARE
-  RECORDTYPECUR LUKA.PACKAGE_USERACTIONS.kartRecord_type;
+  RECORDTYPECUR 
+  PACKAGE_USERACTIONS.kartRecord_type;
   RECORDTYPE NUMBER;
   RECORDLIMIT NUMBER;
 BEGIN
@@ -435,7 +436,7 @@ END;
 
 /*dla konkretnego dnia */
 DECLARE
-  RESERVATIONTYPECUR LUKA.PACKAGE_USERACTIONS.reservation_type;
+  RESERVATIONTYPECUR PACKAGE_USERACTIONS.reservation_type;
   RESERVATIONTYPE NUMBER;
   RESERVATIONDATE DATE;
 BEGIN
@@ -452,7 +453,7 @@ END;
 
 /*dla tygodnia do przodu od podanej daty*/
 DECLARE
-  RESERVATIONTYPECUR LUKA.PACKAGE_USERACTIONS.reservation_type;
+  RESERVATIONTYPECUR PACKAGE_USERACTIONS.reservation_type;
   RESERVATIONTYPE NUMBER;
   RESERVATIONDATE DATE;
 BEGIN
@@ -469,7 +470,7 @@ END;
 
 /*dla miesiaca z podanej daty */
 DECLARE
-  RESERVATIONTYPECUR LUKA.PACKAGE_USERACTIONS.reservation_type;
+  RESERVATIONTYPECUR PACKAGE_USERACTIONS.reservation_type;
   RESERVATIONTYPE NUMBER;
   RESERVATIONDATE DATE;
 BEGIN
@@ -582,7 +583,7 @@ END;
 /*---------------------------------------------*/
 
 DECLARE
-  KARTIDS LUKA.KARTIDTAB;
+  KARTIDS KARTIDTAB;
   v_Return BOOLEAN;
 BEGIN
   KARTIDS := kartIdTab(1, 3);
@@ -605,7 +606,7 @@ DECLARE
   USERID NUMBER;
   STARTDATE DATE;
   NUMBEROFRIDES NUMBER;
-  KARTIDS LUKA.KARTIDTAB;
+  KARTIDS KARTIDTAB;
 BEGIN
   USERID := 1;
   STARTDATE := to_date('2019-09-22 12:30:00', 'YYYY-MM-DD HH24:MI:SS');
@@ -626,7 +627,7 @@ DECLARE
   USERID NUMBER;
   STARTDATE DATE;
   NUMBEROFRIDES NUMBER;
-  KARTIDS LUKA.KARTIDTAB;
+  KARTIDS KARTIDTAB;
 BEGIN
   USERID := 3;
   STARTDATE := to_date('2019-09-22 14:30:00', 'YYYY-MM-DD HH24:MI:SS');

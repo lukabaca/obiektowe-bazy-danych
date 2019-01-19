@@ -31,7 +31,7 @@ create or replace package package_addRecord as
     lapMinute in integer, lapSecond in integer, lapMilisecond in integer);
 
 end package_addRecord;
-
+/
 CREATE OR REPLACE
 PACKAGE BODY PACKAGE_ADDRECORD AS
 
@@ -167,7 +167,7 @@ DECLARE
   NAME VARCHAR2(200);
   DESCRIPITON VARCHAR2(200);
 BEGIN
-  KARTID := kartIdSeq.nextval;
+  KARTID := 2;
   AVAILABILITY := 1;
   PRIZE := 20;
   NAME := 'gt20';
@@ -209,7 +209,7 @@ DECLARE
   TELEPHONENUMBER VARCHAR2(200);
   EMAIL VARCHAR2(200);
   ROLEID NUMBER;
-  RECORDINGCOLLECTION LUKA.K_RECORDING;
+  RECORDINGCOLLECTION K_RECORDING;
 BEGIN
   USERID := userIdSeq.nextval;
   USERNAME := 'Adam';
